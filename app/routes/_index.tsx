@@ -8,6 +8,7 @@ import {
 
 import invariant from "tiny-invariant";
 
+import { userIdCookie } from "@/cookies.server";
 import * as models from "@/models";
 
 import { v4, validate } from "uuid";
@@ -24,8 +25,8 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { userIdCookie } from "@/cookies.server";
-import { cn } from "@/lib/utils";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
+import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const cookieHeader = request.headers.get("Cookie");
@@ -48,7 +49,7 @@ export const action = async ({ request, context }: ActionFunctionArgs) => {
   invariant(typeof code === "string", "code must be a string");
 
   if (code !== "callmemaybe") {
-    return json({ errors: { code: "Invalid code." } }, { status: 400 });
+    return json({ error: "Invalid signup code." }, { status: 400 });
   }
 
   const { DB } = context.cloudflare.env;
@@ -75,11 +76,11 @@ export default function Page() {
   const actionData = useActionData<typeof action>();
 
   return (
-    <div className="flex h-full w-full items-center justify-center">
+    <div className="flex flex-col h-screen w-screen items-center flex-start pt-40 gap-2">
       <Card className="w-full max-w-sm">
-        <Form autoComplete="off" action="/?index" method="POST">
+        <Form action="/?index" method="POST">
           <CardHeader>
-            <CardTitle className="text-2xl">Login</CardTitle>
+            <CardTitle className="text-2xl">Callendar</CardTitle>
             <CardDescription>
               Enter your first name to get started!
             </CardDescription>
@@ -98,25 +99,20 @@ export default function Page() {
             </div>
             <div className="grid gap-2">
               <Label htmlFor="code">Signup Code</Label>
-              <Input
-                id="code"
-                type="password"
-                name="code"
-                className={cn(actionData?.errors.code && "border-destructive")}
-                required
-                minLength={8}
-              />
-              {actionData?.errors.code && (
-                <Label htmlFor="code" className="text-sm text-destructive">
-                  {actionData.errors.code}
-                </Label>
-              )}
+              <Input id="code" type="text" name="code" required minLength={8} />
             </div>
           </CardContent>
-          <CardFooter>
+          <CardFooter className="flex-col gap-6">
             <Button className="w-full" type="submit">
               Sign Up
             </Button>
+            {actionData?.error && (
+              <Alert variant="destructive">
+                <ExclamationTriangleIcon className="h-4 w-4" />
+                <AlertTitle>Error</AlertTitle>
+                <AlertDescription>{actionData.error}</AlertDescription>
+              </Alert>
+            )}
           </CardFooter>
         </Form>
       </Card>
