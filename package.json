@@ -12,7 +12,8 @@
     "typecheck": "tsc",
     "typegen": "wrangler types",
     "preview": "npm run build && wrangler pages dev",
-    "cf-typegen": "wrangler types"
+    "cf-typegen": "wrangler types",
+    "wrangler": "wrangler"
   },
   "dependencies": {
     "@remix-run/cloudflare": "^2.10.3",
