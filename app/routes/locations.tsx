@@ -4,9 +4,9 @@ import type {
 } from "@remix-run/cloudflare";
 import { Form, useLoaderData } from "@remix-run/react";
 import invariant from "tiny-invariant";
-import { slugify } from "~/helpers/url";
+import { slugify } from "@/helpers/url";
 
-import * as models from "~/models";
+import * as models from "@/models";
 
 export const loader = async ({ context }: LoaderFunctionArgs) => {
   const { DB } = context.cloudflare.env;
