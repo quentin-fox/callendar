@@ -21,7 +21,7 @@ export const loader = async ({ params, context }: LoaderFunctionArgs) => {
 
   const listOneUser = models.users.listOne.bind(null, DB);
 
-  const user: entities.User | null = await listOneUser(publicUserId);
+  const user: entities.User | null = await listOneUser({ publicUserId });
 
   if (!user) {
     throw new Error("User does not exist.");

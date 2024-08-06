@@ -27,7 +27,7 @@ RETURNING id;
 
 export async function listOne(
   db: D1Database,
-  publicUserId: string,
+  options: { publicUserId: string },
 ): Promise<User | null> {
   const query = `
 SELECT
@@ -41,7 +41,7 @@ WHERE
   public_id = ?;
 `;
 
-  const parameters = [publicUserId];
+  const parameters = [options.publicUserId];
   const result = await db
     .prepare(query)
     .bind(...parameters)
