@@ -6,6 +6,7 @@ export type User = {
 export type Location = {
   publicId: string;
   title: string;
+  createdAt: string;
 };
 
 export type Schedule = {

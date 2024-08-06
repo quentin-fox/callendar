@@ -1,10 +1,31 @@
 import { isError } from "@/helpers/result";
 import * as models from "@/models";
 import * as services from "@/services";
-import { useLoaderData } from "@remix-run/react";
+import * as dtos from "@/dtos";
+import { Link, Outlet, useLoaderData } from "@remix-run/react";
 import { json, LoaderFunctionArgs } from "@remix-run/server-runtime";
 import invariant from "tiny-invariant";
 import { validate } from "uuid";
+
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import TableEmptyCard from "@/components/TableEmptyCard";
+import { Button } from "@/components/ui/button";
+import { useOutletUserContext } from "@/context";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+
+import { DotsHorizontalIcon } from "@radix-ui/react-icons";
 
 export const handle = {
   breadcrumb: () => {
@@ -37,7 +58,13 @@ export const loader = async ({ context, params }: LoaderFunctionArgs) => {
     throw new Error(result.error);
   }
 
-  const locations = result.value;
+  const locations: dtos.Location[] = result.value.map(
+    (location): dtos.Location => ({
+      title: location.title,
+      publicId: location.publicId,
+      createdAt: location.createdAt,
+    }),
+  );
 
   return json({ locations });
 };
@@ -45,5 +72,61 @@ export const loader = async ({ context, params }: LoaderFunctionArgs) => {
 export default function Page() {
   const { locations } = useLoaderData<typeof loader>();
 
-  return <h1># Locations: {locations.length}</h1>;
+  const { user } = useOutletUserContext();
+
+  return (
+    <div className="flex flex-col items-center">
+      <Outlet context={{ user }} />
+      {locations.length === 0 && (
+        <TableEmptyCard
+          title="No Locations"
+          description="Add a location to associate a schedule and/or shift with a hospital, clinic, etc."
+        >
+          <Link to="add">
+            <Button type="button" variant={"default"}>
+              Add a Location
+            </Button>
+          </Link>
+        </TableEmptyCard>
+      )}
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead className="w-64">Title</TableHead>
+            <TableHead>ID</TableHead>
+            <TableHead>Created</TableHead>
+            <TableHead />
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {locations.map((location) => (
+            <TableRow key={location.publicId}>
+              <TableCell className="w-80">{location.title}</TableCell>
+              <TableCell>{location.publicId}</TableCell>
+              <TableCell>{location.createdAt}</TableCell>
+              <TableCell>
+                <DropdownMenu>
+                  <DropdownMenuTrigger>
+                    <Button variant="outline" size="icon">
+                      <DotsHorizontalIcon />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent>
+                    <Link to={location.publicId + "/edit"}>
+                      <DropdownMenuItem>Edit</DropdownMenuItem>
+                    </Link>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+      <Link className="p-8" to="add">
+        <Button type="button" variant={"default"}>
+          Add a Location
+        </Button>
+      </Link>
+    </div>
+  );
 }

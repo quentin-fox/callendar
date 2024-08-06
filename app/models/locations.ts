@@ -2,7 +2,7 @@ import invariant from "tiny-invariant";
 
 import * as entities from "@/entities";
 
-export async function add(
+export async function insert(
   db: D1Database,
   options: {
     userId: number;
@@ -36,9 +36,9 @@ RETURNING id;
   return result.id;
 }
 
-export async function edit(
+export async function update(
   db: D1Database,
-  options: { publicId: number; title: string },
+  options: { locationId: number; title: string },
 ): Promise<number> {
   const query = `
 UPDATE
@@ -50,7 +50,7 @@ WHERE
 RETURNING id;
 `;
 
-  const parameters = [options.title, options.publicId];
+  const parameters = [options.title, options.locationId];
   const result = await db
     .prepare(query)
     .bind(...parameters)
@@ -108,7 +108,7 @@ WHERE
 
 export async function listOne(
   db: D1Database,
-  options: { publicId: number },
+  options: { publicId: string },
 ): Promise<entities.Location | null> {
   const query = `
 SELECT
@@ -121,7 +121,7 @@ FROM
   locations
 WHERE
   removed_at IS NULL
-  AND user_id = ?;
+  AND public_id = ?;
 `;
 
   const result = await db.prepare(query).bind(options.publicId).first<{

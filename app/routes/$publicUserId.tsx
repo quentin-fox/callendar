@@ -44,16 +44,16 @@ export default function Page() {
       }
       const { title, to } = bc;
 
-      return { title, to };
+      return { title, to: "/" + user.publicId + to };
     },
   );
 
   return (
     <div className="flex min-h-screen w-full flex-col items-center">
-      <div className="flex flex-col items-stretch w-full md:max-w-4/5 pt-4 px-4 gap-4">
+      <div className="flex flex-col items-stretch w-full md:max-w-[64rem] pt-4 px-4 gap-4">
         <NavigationBar user={user} />
 
-        <main className="flex flex-col rounded-lg bg-background p-4">
+        <main className="flex flex-col rounded-lg bg-background p-4 gap-4">
           <header>
             {breadcrumbs.length > 0 && (
               <Breadcrumb className="flex">
