@@ -1,3 +1,7 @@
+import invariant from "tiny-invariant";
+
+import * as entities from "@/entities";
+
 export async function add(
   db: D1Database,
   options: {
@@ -27,9 +31,7 @@ RETURNING id;
     .bind(...parameters)
     .first<{ id: number }>();
 
-  if (!result) {
-    throw new Error("Could not add location.");
-  }
+  invariant(result, "Could not add location.");
 
   return result.id;
 }
@@ -54,22 +56,38 @@ RETURNING id;
     .bind(...parameters)
     .first<{ id: number }>();
 
-  if (!result) {
-    throw new Error("Could not edit location.");
-  }
+  invariant(result, "Could not edit location.");
 
   return result.id;
+}
+
+function toEntity(row: {
+  id: number;
+  public_id: string;
+  created_at: number;
+  title: string;
+  user_id: number;
+}): entities.Location {
+  return {
+    id: row.id,
+    publicId: row.public_id,
+    createdAt: new Date(row.created_at).toISOString(),
+    title: row.title,
+    userId: row.user_id,
+  };
 }
 
 export async function list(
   db: D1Database,
   options: { userId: number },
-): Promise<{ id: number; public_id: string; title: string; userId: number }[]> {
+): Promise<entities.Location[]> {
   const query = `
 SELECT
   id,
   public_id,
-  title
+  created_at,
+  title,
+  user_id
 FROM
   locations
 WHERE
@@ -77,20 +95,46 @@ WHERE
   AND user_id = ?;
 `;
 
-  const { results } = await db
-    .prepare(query)
-    .bind(options.userId)
-    .all<{ id: number; public_id: string; title: string }>();
+  const { results } = await db.prepare(query).bind(options.userId).all<{
+    id: number;
+    public_id: string;
+    created_at: number;
+    title: string;
+    user_id: number;
+  }>();
 
-  return results;
+  return results.map(toEntity);
 }
 
 export async function listOne(
   db: D1Database,
-  options: { publicId: string },
-): Promise<{
-  id: number;
-  public_id: string;
-  title: string;
-  userId: number;
-} | null> {}
+  options: { publicId: number },
+): Promise<entities.Location | null> {
+  const query = `
+SELECT
+  id,
+  public_id,
+  created_at,
+  title,
+  user_id
+FROM
+  locations
+WHERE
+  removed_at IS NULL
+  AND user_id = ?;
+`;
+
+  const result = await db.prepare(query).bind(options.publicId).first<{
+    id: number;
+    public_id: string;
+    created_at: number;
+    title: string;
+    user_id: number;
+  }>();
+
+  if (!result) {
+    return null;
+  }
+
+  return toEntity(result);
+}

@@ -10,6 +10,7 @@ export type Location = {
   publicId: string;
   createdAt: string; // ISO
   title: string;
+  userId: number;
 };
 
 export type Schedule = {

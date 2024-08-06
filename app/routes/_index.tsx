@@ -9,9 +9,11 @@ import {
 import invariant from "tiny-invariant";
 
 import { userIdCookie } from "@/cookies.server";
-import * as models from "@/models";
 
-import { v4, validate } from "uuid";
+import * as models from "@/models";
+import * as services from "@/services";
+
+import { validate } from "uuid";
 
 // components
 import { Button } from "@/components/ui/button";
@@ -27,6 +29,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
+import { isError } from "@/helpers/result";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const cookieHeader = request.headers.get("Cookie");
@@ -48,28 +51,22 @@ export const action = async ({ request, context }: ActionFunctionArgs) => {
   invariant(typeof firstName === "string", "firstName must be a string");
   invariant(typeof code === "string", "code must be a string");
 
-  if (code !== "callmemaybe") {
-    return json({ error: "Invalid signup code." }, { status: 400 });
-  }
-
   const { DB } = context.cloudflare.env;
 
   const insertUser = models.users.insert.bind(null, DB);
 
-  const publicId = v4();
-  const createdAt = Date.now();
-
-  await insertUser({
-    publicId,
-    createdAt,
+  const result = await services.users.insert(insertUser, {
     firstName,
+    code,
   });
 
-  const headers = new Headers({
-    "Set-Cookie": await userIdCookie.serialize(publicId),
-  });
+  if (isError(result)) {
+    return json({ error: result.error });
+  }
 
-  return redirect("/" + publicId, { headers });
+  const publicId = result.value;
+
+  return redirect("/" + publicId);
 };
 
 export default function Page() {
