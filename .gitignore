@@ -9,3 +9,4 @@ node_modules
 .wrangler
 # for secrecy
 wrangler.toml
+.DS_Store
