@@ -11,6 +11,36 @@ import { Button } from "@/components/ui/button";
 
 import { CopyIcon, CalendarIcon, BellIcon } from "@radix-ui/react-icons";
 
+import {
+  ChartConfig,
+  ChartContainer,
+  ChartLegend,
+  ChartLegendContent,
+  ChartTooltip,
+  ChartTooltipContent,
+} from "@/components/ui/chart";
+import { Bar, BarChart, CartesianGrid, XAxis } from "recharts";
+
+const chartConfig = {
+  claimed: {
+    label: "Claimed",
+    color: "hsl(var(--chart-1))",
+  },
+  unclaimed: {
+    label: "Unclaimed",
+    color: "hsl(var(--chart-3))",
+  },
+} satisfies ChartConfig;
+
+const chartData = [
+  { month: "January", claimed: 10, unclaimed: 5 },
+  { month: "February", claimed: 8, unclaimed: 3 },
+  { month: "March", claimed: 6, unclaimed: 2 },
+  { month: "April", claimed: 4, unclaimed: 1 },
+  { month: "May", claimed: 2, unclaimed: 1 },
+  { month: "June", claimed: 1, unclaimed: 10 },
+];
+
 export default function Page() {
   const { user } = useOutletUserContext();
 
@@ -37,6 +67,37 @@ export default function Page() {
           <div className="text-3xl font-bold">12</div>
           <p className="text-xs text-muted-foreground">5 unclaimed shifts</p>
         </CardContent>
+      </Card>
+      <Card className="md:col-span-2">
+        <ChartContainer config={chartConfig} className="min-h-[20rem]">
+          <BarChart accessibilityLayer data={chartData}>
+            <CartesianGrid vertical={false} />
+            <XAxis
+              dataKey="month"
+              tickLine={false}
+              tickMargin={10}
+              axisLine={false}
+              tickFormatter={(value) => value.slice(0, 3)}
+            />
+            <ChartTooltip content={<ChartTooltipContent />} />
+            <ChartLegend content={<ChartLegendContent />} />
+
+            <Bar
+              stackId="a"
+              dataKey="claimed"
+              fill="var(--color-claimed)"
+              radius={[0, 0, 4, 4]}
+              isAnimationActive={false}
+            />
+            <Bar
+              stackId="a"
+              dataKey="unclaimed"
+              fill="var(--color-unclaimed)"
+              radius={[4, 4, 0, 0]}
+              isAnimationActive={false}
+            />
+          </BarChart>
+        </ChartContainer>
       </Card>
       <Card className="md:col-span-2">
         <CardHeader>
