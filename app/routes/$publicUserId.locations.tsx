@@ -89,44 +89,48 @@ export default function Page() {
           </Link>
         </TableEmptyCard>
       )}
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead className="w-64">Title</TableHead>
-            <TableHead>ID</TableHead>
-            <TableHead>Created</TableHead>
-            <TableHead />
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {locations.map((location) => (
-            <TableRow key={location.publicId}>
-              <TableCell className="w-80">{location.title}</TableCell>
-              <TableCell>{location.publicId}</TableCell>
-              <TableCell>{location.createdAt}</TableCell>
-              <TableCell>
-                <DropdownMenu>
-                  <DropdownMenuTrigger>
-                    <Button variant="outline" size="icon">
-                      <DotsHorizontalIcon />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent>
-                    <Link to={location.publicId + "/edit"}>
-                      <DropdownMenuItem>Edit</DropdownMenuItem>
-                    </Link>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-      <Link className="p-8" to="add">
-        <Button type="button" variant={"default"}>
-          Add a Location
-        </Button>
-      </Link>
+      {locations.length > 0 && (
+        <>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-64">Title</TableHead>
+                <TableHead>ID</TableHead>
+                <TableHead>Created</TableHead>
+                <TableHead />
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {locations.map((location) => (
+                <TableRow key={location.publicId}>
+                  <TableCell className="w-80">{location.title}</TableCell>
+                  <TableCell>{location.publicId}</TableCell>
+                  <TableCell>{location.createdAt}</TableCell>
+                  <TableCell>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger>
+                        <Button variant="outline" size="icon">
+                          <DotsHorizontalIcon />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent>
+                        <Link to={location.publicId + "/edit"}>
+                          <DropdownMenuItem>Edit</DropdownMenuItem>
+                        </Link>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+          <Link className="p-8" to="add">
+            <Button type="button" variant={"default"}>
+              Add a Location
+            </Button>
+          </Link>
+        </>
+      )}
     </div>
   );
 }
