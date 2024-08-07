@@ -103,6 +103,7 @@ export default function Page() {
                 className="hidden"
                 type="text"
                 name="timeZone"
+                readOnly
               />
             </div>
             <div className="grid gap-2">
