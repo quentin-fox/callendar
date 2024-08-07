@@ -7,10 +7,12 @@ export async function insert(
     publicId: string;
     createdAt: number;
     firstName: string;
+    timeZone: string;
   }) => Promise<number>,
   options: {
     firstName: string;
     code: string;
+    timeZone: string;
   },
 ): Promise<Result<string, string>> {
   if (options.code !== "callmemaybe") {
@@ -24,6 +26,7 @@ export async function insert(
     publicId,
     createdAt,
     firstName: options.firstName.trim(),
+    timeZone: options.timeZone,
   });
 
   return ok(publicId);

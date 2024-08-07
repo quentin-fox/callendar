@@ -3,6 +3,7 @@ export type User = {
   publicId: string;
   createdAt: string; // ISO
   firstName: string;
+  timeZone: string;
 };
 
 export type Location = {

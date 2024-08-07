@@ -45,11 +45,14 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
 export const action = async ({ request, context }: ActionFunctionArgs) => {
   const formData = await request.formData();
+
   const firstName = formData.get("firstName");
   const code = formData.get("code");
+  const timeZone = formData.get("timeZone");
 
   invariant(typeof firstName === "string", "firstName must be a string");
   invariant(typeof code === "string", "code must be a string");
+  invariant(typeof timeZone === "string", "timeZone must be a string");
 
   const { DB } = context.cloudflare.env;
 
@@ -58,6 +61,7 @@ export const action = async ({ request, context }: ActionFunctionArgs) => {
   const result = await services.users.insert(insertUser, {
     firstName,
     code,
+    timeZone,
   });
 
   if (isError(result)) {
@@ -92,6 +96,13 @@ export default function Page() {
                 autoComplete="given-name"
                 name="firstName"
                 minLength={2}
+              />
+              <Input
+                id="timeZone"
+                value={Intl.DateTimeFormat().resolvedOptions().timeZone}
+                className="hidden"
+                type="text"
+                name="timeZone"
               />
             </div>
             <div className="grid gap-2">

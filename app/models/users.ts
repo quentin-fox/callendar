@@ -1,18 +1,28 @@
-import { User } from "@/entities";
+import * as entities from "@/entities";
 
 export async function insert(
   db: D1Database,
-  options: { publicId: string; firstName: string; createdAt: number },
+  options: {
+    publicId: string;
+    firstName: string;
+    createdAt: number;
+    timeZone: string;
+  },
 ): Promise<number> {
   const query = `
 INSERT INTO users
-  (public_id, first_name, created_at)
+  (public_id, first_name, created_at, time_zone)
 VALUES
-  (?, ?, ?)
+  (?, ?, ?, ?)
 RETURNING id;
 `;
 
-  const parameters = [options.publicId, options.firstName, options.createdAt];
+  const parameters = [
+    options.publicId,
+    options.firstName,
+    options.createdAt,
+    options.timeZone,
+  ];
   const result = await db
     .prepare(query)
     .bind(...parameters)
@@ -28,13 +38,14 @@ RETURNING id;
 export async function listOne(
   db: D1Database,
   options: { publicUserId: string },
-): Promise<User | null> {
+): Promise<entities.User | null> {
   const query = `
 SELECT
   id,
   public_id,
   created_at,
-  first_name
+  first_name,
+  time_zone
 FROM
   users
 WHERE
@@ -50,6 +61,7 @@ WHERE
       public_id: string;
       created_at: number;
       first_name: string;
+      time_zone: string;
     }>();
 
   if (!result) {
@@ -61,5 +73,6 @@ WHERE
     publicId: result.public_id,
     createdAt: new Date(result.created_at).toISOString(),
     firstName: result.first_name,
+    timeZone: result.time_zone,
   };
 }
