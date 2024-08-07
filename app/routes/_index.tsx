@@ -25,10 +25,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import ErrorAlert from "@/components/ErrorAlert";
+
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
-import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 import { isError } from "@/helpers/result";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
@@ -103,13 +103,7 @@ export default function Page() {
             <Button className="w-full" type="submit">
               Sign Up
             </Button>
-            {actionData?.error && (
-              <Alert variant="destructive">
-                <ExclamationTriangleIcon className="h-4 w-4" />
-                <AlertTitle>Error</AlertTitle>
-                <AlertDescription>{actionData.error}</AlertDescription>
-              </Alert>
-            )}
+            {actionData?.error && <ErrorAlert error={actionData.error} />}
           </CardFooter>
         </Form>
       </Card>

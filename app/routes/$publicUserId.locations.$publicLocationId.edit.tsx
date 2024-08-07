@@ -22,8 +22,7 @@ import {
   AlertDialogFooter,
   AlertDialogCancel,
 } from "@/components/ui/alert-dialog";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
+import ErrorAlert from "@/components/ErrorAlert";
 
 export const handle = {
   breadcrumb: () => {
@@ -136,13 +135,7 @@ export default function Page() {
             <Button type="submit">Submit</Button>
           </AlertDialogFooter>
         </Form>
-        {actionData?.error && (
-          <Alert variant="destructive">
-            <ExclamationTriangleIcon className="h-4 w-4" />
-            <AlertTitle>Error</AlertTitle>
-            <AlertDescription>{actionData.error}</AlertDescription>
-          </Alert>
-        )}
+        {actionData?.error && <ErrorAlert error={actionData.error} />}
       </AlertDialogContent>
     </AlertDialog>
   );
