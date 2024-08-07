@@ -131,7 +131,7 @@ export async function listOne(
     publicUserId: string;
   }) => Promise<entities.User | null>,
   listOneLocation: (options: {
-    publicId: string;
+    publicLocationId: string;
   }) => Promise<entities.Location | null>,
   options: { publicUserId: string; publicLocationId: string },
 ): Promise<Result<entities.Location, string>> {
@@ -144,7 +144,7 @@ export async function listOne(
   }
 
   const location = await listOneLocation({
-    publicId: options.publicLocationId,
+    publicLocationId: options.publicLocationId,
   });
 
   if (!location) {
@@ -156,4 +156,45 @@ export async function listOne(
   }
 
   return ok(location);
+}
+
+export async function remove(
+  listOneUser: (options: {
+    publicUserId: string;
+  }) => Promise<entities.User | null>,
+  listOneLocation: (options: {
+    publicLocationId: string;
+  }) => Promise<entities.Location | null>,
+  removeLocation: (options: {
+    locationId: number;
+    removedAt: number;
+  }) => Promise<number>,
+  options: {
+    publicLocationId: string;
+    publicUserId: string;
+  },
+): Promise<Result<void, string>> {
+  const user = await listOneUser({
+    publicUserId: options.publicUserId,
+  });
+
+  if (!user) {
+    return error("User does not exist.");
+  }
+
+  const location = await listOneLocation({
+    publicLocationId: options.publicLocationId,
+  });
+
+  if (!location) {
+    return error("Location does not exist.");
+  }
+
+  if (location.userId !== user.id) {
+    return error("You are not the creator of this location.");
+  }
+
+  await removeLocation({ locationId: location.id, removedAt: Date.now() });
+
+  return ok(undefined);
 }

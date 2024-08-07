@@ -56,7 +56,7 @@ export default function Page() {
         <main className="flex flex-col rounded-lg bg-background p-4 gap-4">
           <header>
             {breadcrumbs.length > 0 && (
-              <Breadcrumb className="flex">
+              <Breadcrumb>
                 <BreadcrumbList>
                   {[
                     { to: "/" + user.publicId, title: "Home" },
@@ -65,7 +65,7 @@ export default function Page() {
                     index > 0 && <BreadcrumbSeparator key={`${index}-sep`} />,
                     <BreadcrumbItem key={`${index}-item`}>
                       {index < list.length - 1 ? (
-                        <BreadcrumbLink>
+                        <BreadcrumbLink asChild>
                           <Link to={breadcrumb.to}>{breadcrumb.title}</Link>
                         </BreadcrumbLink>
                       ) : (

@@ -61,6 +61,32 @@ RETURNING id;
   return result.id;
 }
 
+export async function remove(
+  db: D1Database,
+  options: { locationId: number; removedAt: number },
+): Promise<number> {
+  const query = `
+UPDATE
+  locations
+SET
+  removed_at = ?
+WHERE
+  id = ?
+RETURNING id;
+`;
+
+  const parameters = [options.removedAt, options.locationId];
+
+  const result = await db
+    .prepare(query)
+    .bind(...parameters)
+    .first<{ id: number }>();
+
+  invariant(result, "Could not remove location.");
+
+  return result.id;
+}
+
 function toEntity(row: {
   id: number;
   public_id: string;
@@ -108,7 +134,7 @@ WHERE
 
 export async function listOne(
   db: D1Database,
-  options: { publicId: string },
+  options: { publicLocationId: string },
 ): Promise<entities.Location | null> {
   const query = `
 SELECT
@@ -124,7 +150,7 @@ WHERE
   AND public_id = ?;
 `;
 
-  const result = await db.prepare(query).bind(options.publicId).first<{
+  const result = await db.prepare(query).bind(options.publicLocationId).first<{
     id: number;
     public_id: string;
     created_at: number;

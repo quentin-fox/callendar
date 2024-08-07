@@ -37,7 +37,7 @@ const pages = [
 
 export default function NavigationBar(props: Props) {
   return (
-    <nav className="flex flex-row justify-between h-16 p-4 rounded-lg bg-background">
+    <nav className="flex flex-row justify-between h-16 p-4 rounded bg-background">
       <Link className="flex flex-row gap-3" to={`/${props.user.publicId}`}>
         <h1 className="text-2xl font-bold">Callendar</h1>
         <Separator orientation="vertical" />
@@ -68,7 +68,7 @@ export default function NavigationBar(props: Props) {
       </div>
       <div className="flex md:hidden">
         <DropdownMenu>
-          <DropdownMenuTrigger>
+          <DropdownMenuTrigger asChild>
             <Button variant="outline" size="icon">
               <HamburgerMenuIcon />
             </Button>

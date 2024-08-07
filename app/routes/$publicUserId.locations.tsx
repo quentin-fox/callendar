@@ -22,6 +22,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
@@ -108,7 +109,7 @@ export default function Page() {
                   <TableCell>{location.createdAt}</TableCell>
                   <TableCell>
                     <DropdownMenu>
-                      <DropdownMenuTrigger>
+                      <DropdownMenuTrigger asChild>
                         <Button variant="outline" size="icon">
                           <DotsHorizontalIcon />
                         </Button>
@@ -117,6 +118,12 @@ export default function Page() {
                         <Link to={location.publicId + "/edit"}>
                           <DropdownMenuItem>Edit</DropdownMenuItem>
                         </Link>
+                        <DropdownMenuSeparator />
+                        <Link to={location.publicId + "/remove"}>
+                          <DropdownMenuItem className="text-destructive">
+                            Remove
+                          </DropdownMenuItem>
+                        </Link>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>
@@ -124,7 +131,7 @@ export default function Page() {
               ))}
             </TableBody>
           </Table>
-          <Link className="p-8" to="add">
+          <Link className="m-8" to="add">
             <Button type="button" variant={"default"}>
               Add a Location
             </Button>
