@@ -47,11 +47,13 @@ export default function Page() {
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-row gap-2">
-          <Input
-            contentEditable={false}
-            value={`http://callendar.com/ics/someicslinkhere`}
-          />
-          <Button variant={"outline"} size={"icon"}>
+          <Input readOnly value={`http://callendar.com/ics/someicslinkhere`} />
+          <Button
+            type="button"
+            title="Copy to Clipboard"
+            variant={"outline"}
+            size={"icon"}
+          >
             <CopyIcon />
           </Button>
         </CardContent>
