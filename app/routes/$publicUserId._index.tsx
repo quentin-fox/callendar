@@ -63,17 +63,19 @@ export default function Page() {
           <p className="text-xs text-muted-foreground">5 unclaimed shifts</p>
         </CardContent>
       </Card>
-      <Card className="md:col-span-2">
-        <ChartContainer config={chartConfig} className="min-h-[20rem]">
+      <Card className="hidden md:flex md:col-span-2">
+        <ChartContainer config={chartConfig} className="min-h-[20rem] w-full">
           <BarChart accessibilityLayer data={chartData}>
             <CartesianGrid vertical={false} />
-            <XAxis
-              dataKey="month"
-              tickLine={false}
-              tickMargin={10}
-              axisLine={false}
-              tickFormatter={(value) => value.slice(0, 3)}
-            />
+            {false && (
+              <XAxis
+                dataKey="month"
+                tickLine={false}
+                tickMargin={10}
+                axisLine={false}
+                tickFormatter={(value) => value.slice(0, 3)}
+              />
+            )}
             <ChartTooltip content={<ChartTooltipContent />} />
             <ChartLegend content={<ChartLegendContent />} />
 
