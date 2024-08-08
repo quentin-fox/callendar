@@ -5,7 +5,6 @@ import {
   CardContent,
   CardDescription,
 } from "@/components/ui/card";
-import { useOutletUserContext } from "@/context";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
@@ -42,10 +41,6 @@ const chartData = [
 ];
 
 export default function Page() {
-  const { user } = useOutletUserContext();
-
-  // design:
-
   return (
     <div className="grid gap-4 md:cols-2">
       <Card>
@@ -121,7 +116,4 @@ export default function Page() {
       </Card>
     </div>
   );
-  // one full-width card at the top showing the ICS link
-  // two full width cards showing # upcoming shifts, # total shifts
-  return <h1 className="text-3xl font-bold">Hello {user.firstName}!</h1>;
 }

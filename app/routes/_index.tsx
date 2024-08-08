@@ -79,7 +79,7 @@ export default function Page() {
   return (
     <div className="flex flex-col h-screen w-screen items-center flex-start pt-40 gap-2">
       <Card className="w-full max-w-sm">
-        <Form action="/?index" method="POST">
+        <Form method="POST">
           <CardHeader>
             <CardTitle className="text-2xl">Callendar</CardTitle>
             <CardDescription>
