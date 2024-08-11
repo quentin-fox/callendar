@@ -12,7 +12,12 @@ import {
 
 import invariant from "tiny-invariant";
 import { validate } from "uuid";
-import { Form, useLoaderData, useBeforeUnload } from "@remix-run/react";
+import {
+  Form,
+  useLoaderData,
+  useBeforeUnload,
+  useActionData,
+} from "@remix-run/react";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -65,17 +70,36 @@ export const loader = async ({ context, params }: LoaderFunctionArgs) => {
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {
-  const fd = await request.formData();
+  const formData = await request.formData();
 
-  console.log([...fd.keys()]);
+  const images = await formData.getAll("images[]");
 
-  return json({ value: null });
+  // to be uploaded to claude
+  const contents: string[] = await Promise.all(
+    images.flatMap((image) => {
+      if (image instanceof File === false) {
+        return [];
+      }
+
+      image.text().then(console.log);
+
+      console.log(image.type);
+
+      return image
+        .arrayBuffer()
+        .then((buf) => Buffer.from(buf).toString("base64"));
+    }),
+  );
+
+  return json({ contents });
 };
 
 export default function Page() {
   const { locations } = useLoaderData<typeof loader>();
 
   const [uploads, setUploads] = useState<{ file: File; url: string }[]>([]);
+
+  const actionData = useActionData<typeof action>();
 
   const dropZoneConfig = {
     accept: {
@@ -189,6 +213,7 @@ export default function Page() {
       </fieldset>
 
       <Button type="submit">Upload</Button>
+      <p>{actionData?.contents[0]}</p>
     </Form>
   );
 }
