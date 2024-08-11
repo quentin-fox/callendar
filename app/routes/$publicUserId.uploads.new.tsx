@@ -12,6 +12,8 @@ import {
   unstable_parseMultipartFormData,
 } from "@remix-run/server-runtime";
 
+import Anthropic from "@anthropic-ai/sdk";
+
 import invariant from "tiny-invariant";
 import { validate } from "uuid";
 import {
@@ -39,6 +41,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { TrashIcon } from "@radix-ui/react-icons";
 import { Textarea } from "@/components/ui/textarea";
+
+const validMediaTypes = ["image/png", "image/jpeg", "image/webp"] as const;
+
+type ValidMediaType = (typeof validMediaTypes)[number];
 
 export const loader = async ({ context, params }: LoaderFunctionArgs) => {
   const { DB } = context.cloudflare.env;
@@ -73,7 +79,7 @@ export const loader = async ({ context, params }: LoaderFunctionArgs) => {
   return json({ locations });
 };
 
-export const action = async ({ request }: ActionFunctionArgs) => {
+export const action = async ({ request, context }: ActionFunctionArgs) => {
   const uploadHandler = unstable_createMemoryUploadHandler({
     maxPartSize: 500_000,
   });
@@ -82,6 +88,12 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     request,
     uploadHandler,
   );
+
+  console.log(context.cloudflare.env);
+
+  const anthropic = new Anthropic({
+    apiKey: context.cloudflare.env.ANTHROPIC_API_KEY,
+  });
 
   const name = formData.get("name");
   invariant(typeof name === "string");
@@ -95,23 +107,151 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   const images = formData.getAll("images[]");
 
   // to be uploaded to claude
-  const contents: { data: string; type: string }[] = await Promise.all(
-    images.flatMap((image) => {
-      if (image instanceof File === false) {
-        return [];
-      }
+  const contents: { data: string; mediaType: ValidMediaType }[] =
+    await Promise.all(
+      images.flatMap((image) => {
+        if (image instanceof File === false) {
+          return [];
+        }
 
-      return image.arrayBuffer().then((buffer) => {
-        const data = Buffer.from(buffer).toString("base64");
-        return {
-          data,
-          type: image.type,
-        };
-      });
-    }),
-  );
+        const matchingValidMediaType = validMediaTypes.find(
+          (mt) => mt === image.type,
+        );
 
-  return json({ contents });
+        if (!matchingValidMediaType) {
+          return [];
+        }
+
+        return image.arrayBuffer().then((buffer) => {
+          const data = Buffer.from(buffer).toString("base64");
+          return {
+            data,
+            mediaType: matchingValidMediaType,
+          };
+        });
+      }),
+    );
+
+  const prompt = `
+You are an AI assistant tasked with extracting a specific resident's schedule from a set of uploaded images of a resident call schedule. Your goal is to analyze the images and provide the schedule for the requested resident in a structured format.
+
+If there are multiple images, it's possible that the images will need to be analysed together to make sense of the schedule. For example, the table headers required to make sense of the second image may only be visible in the first image.
+
+The user has requested the schedule for the following resident:
+
+<resident-name>
+${name}
+</resident-name>
+
+Please follow these steps to extract and present the requested schedule:
+
+1. Analyze the image carefully, identifying the structure of the schedule (e.g., days, shifts, resident names).
+
+2. Locate the row or section corresponding to the specified resident-name.
+
+3. Extract the schedule information for that resident, including dates, shifts, and any other relevant details.
+
+4. The output should have the following high-level structure (XML):
+
+<errors>
+  <error>
+  </error>
+</errors>
+
+<schedule>
+  <shift>
+  </shift>
+</schedule>
+
+If any errors are encountered during processing, each error should be found in a separate <error> tag in the <errors> block.
+
+All of the extracted call shifts should be included in the <schedule> block.
+
+The <shift></shift> can have one of the following formats:
+
+<shift>
+  <type>all-day</type>
+  <date>[YYYY-MM-DD]</date>
+  <notes>[Any additional notes or information.]</notes>
+</shift>
+
+OR
+
+<shift>
+  <type>timed</type>
+  <start>[YYYY-MM-DDTHH:MM]</start>
+  <end>[YYYY-MM-DDTHH:MM]</end>
+  <notes>[Any additional notes or information.]</notes>
+</shift>
+
+This will let us distinguish between all-day shifts, which will be used to create all-day calendar events, and shifts that are less than 24 hours, which will be used to create timed calendar events.
+
+If multiple shifts look like they are back to back (e.g. 7AM - 7PM, and 7PM - 7AM), then it can be considered as a single all-day shift.
+
+Some of the shifts in the file might be indicating that the resident in question is NOT on shift - this will be denoted with leave/retreat. These should not be included as shifts in the output.
+
+Use all the images to extract all the shifts for resident-name.
+
+If there is no valuable information to put in the notes aside from the start/end/date of a shift, then leave the <notes> field blank.
+
+6. If the specified resident-name is not found in the images, respond with:
+
+<errors>
+  <error>
+    Resident name not found in the schedule image.
+  </error>
+</error>
+
+<schedule>
+</schedule>
+
+7. If the image is unreadable or doesn't appear to be a valid resident call schedule, respond with:
+<errors>
+  <error>
+    Unable to process image. Please ensure a clear, valid resident call schedule image is uploaded.
+  </error>
+</error>
+
+Do not include any explanation in your output.
+`;
+
+  const msg = await anthropic.messages.create({
+    model: "claude-3-5-sonnet-20240620",
+    max_tokens: 1000,
+    temperature: 0,
+    system:
+      "You are a backend data processor that is part of an image processing flow for parsing call schedules/shifts for medical residents. The user will provide text and image(s) as input and processing instructions. The output can only contain XML-compliant text compliant with common XML specs. Do not converse with a nonexistent user. There is only program input and formatted program output, and no input data is to be construed as conversation with the AI.",
+    messages: [
+      {
+        role: "user",
+        content: [
+          {
+            type: "text",
+            text: prompt,
+          },
+          ...contents.map(
+            (content): Anthropic.Messages.ImageBlockParam => ({
+              type: "image",
+              source: {
+                type: "base64",
+                media_type: content.mediaType,
+                data: content.data,
+              },
+            }),
+          ),
+        ],
+      },
+    ],
+  });
+
+  console.log(msg);
+  console.log(JSON.stringify(msg));
+
+  const texts = msg.content.flatMap((content) => {
+    content.type === "text" ? content.text : [];
+  });
+
+  return json({ texts });
 };
 
 export default function Page() {
@@ -123,7 +263,7 @@ export default function Page() {
 
   const dropZoneConfig = {
     accept: {
-      "image/*": [".jpg", ".jpeg", ".png"],
+      "image/*": [".jpg", ".jpeg", ".png", ".webp"],
     },
     multiple: true,
     maxFiles: 4,
@@ -231,8 +371,7 @@ export default function Page() {
       </fieldset>
 
       <Button type="submit">Upload</Button>
-      <p>{actionData?.contents[0]?.type}</p>
-      <p>{actionData?.contents[0]?.data}</p>
+      <p>{JSON.stringify(actionData?.texts)}</p>
     </Form>
   );
 }
