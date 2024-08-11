@@ -12,7 +12,7 @@ import {
 
 import invariant from "tiny-invariant";
 import { validate } from "uuid";
-import { Form, useLoaderData } from "@remix-run/react";
+import { Form, useLoaderData, useBeforeUnload } from "@remix-run/react";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -104,7 +104,17 @@ export default function Page() {
     setUploads((currUploads) =>
       currUploads.filter((upload) => upload.url !== url),
     );
+
+    URL.revokeObjectURL(url);
   }, []);
+
+  useBeforeUnload(
+    useCallback(() => {
+      uploads.forEach((upload) => {
+        URL.revokeObjectURL(upload.url);
+      });
+    }, [uploads]),
+  );
 
   useEffect(() => {
     const cb = (event: ClipboardEvent) => {
