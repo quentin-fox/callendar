@@ -188,7 +188,7 @@ export const FileUploader = forwardRef<
           ref={ref}
           tabIndex={0}
           className={cn(
-            "grid w-full focus:outline-none overflow-hidden ",
+            "grid w-full focus:outline-none overflow-hidden",
             className,
             {
               "gap-2": value && value.length > 0,

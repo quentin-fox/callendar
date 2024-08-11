@@ -8,6 +8,8 @@ import {
   ActionFunctionArgs,
   json,
   LoaderFunctionArgs,
+  unstable_createMemoryUploadHandler,
+  unstable_parseMultipartFormData,
 } from "@remix-run/server-runtime";
 
 import invariant from "tiny-invariant";
@@ -31,10 +33,12 @@ import {
   FileUploaderContent,
   FileInput,
 } from "@/components/ui/extension/file-uploader";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { DropzoneOptions } from "react-dropzone-esm";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { TrashIcon } from "@radix-ui/react-icons";
+import { Textarea } from "@/components/ui/textarea";
 
 export const loader = async ({ context, params }: LoaderFunctionArgs) => {
   const { DB } = context.cloudflare.env;
@@ -70,24 +74,40 @@ export const loader = async ({ context, params }: LoaderFunctionArgs) => {
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {
-  const formData = await request.formData();
+  const uploadHandler = unstable_createMemoryUploadHandler({
+    maxPartSize: 500_000,
+  });
 
-  const images = await formData.getAll("images[]");
+  const formData = await unstable_parseMultipartFormData(
+    request,
+    uploadHandler,
+  );
+
+  const name = formData.get("name");
+  invariant(typeof name === "string");
+
+  const publicLocationId = formData.get("publicLocationId");
+  invariant(typeof publicLocationId === "string");
+
+  const extra = formData.get("extra");
+  invariant(typeof extra === "string" || extra === null);
+
+  const images = formData.getAll("images[]");
 
   // to be uploaded to claude
-  const contents: string[] = await Promise.all(
+  const contents: { data: string; type: string }[] = await Promise.all(
     images.flatMap((image) => {
       if (image instanceof File === false) {
         return [];
       }
 
-      image.text().then(console.log);
-
-      console.log(image.type);
-
-      return image
-        .arrayBuffer()
-        .then((buf) => Buffer.from(buf).toString("base64"));
+      return image.arrayBuffer().then((buffer) => {
+        const data = Buffer.from(buffer).toString("base64");
+        return {
+          data,
+          type: image.type,
+        };
+      });
     }),
   );
 
@@ -108,6 +128,7 @@ export default function Page() {
     multiple: true,
     maxFiles: 4,
     maxSize: 1 * 1024 * 1024,
+    noDrag: true, // for now
   } satisfies DropzoneOptions;
 
   const handleChangeFiles = useCallback((files: File[] | null) => {
@@ -121,7 +142,7 @@ export default function Page() {
       url: URL.createObjectURL(file),
     }));
 
-    setUploads((prevUploads) => [...prevUploads, ...newUploads]);
+    setUploads(newUploads);
   }, []);
 
   const handleRemoveUpload = useCallback((url: string) => {
@@ -140,25 +161,12 @@ export default function Page() {
     }, [uploads]),
   );
 
-  useEffect(() => {
-    const cb = (event: ClipboardEvent) => {
-      if (!event.clipboardData?.files) {
-        return;
-      }
-
-      const { files } = event.clipboardData;
-      handleChangeFiles([...files]);
-    };
-
-    window.addEventListener("paste", cb);
-
-    return () => {
-      window.removeEventListener("paste", cb);
-    };
-  }, [handleChangeFiles]);
-
   return (
-    <Form method="POST" encType="multipart/form-data">
+    <Form
+      method="POST"
+      encType="multipart/form-data"
+      className="flex flex-col gap-4"
+    >
       <fieldset>
         <FileUploader
           value={uploads.map((u) => u.file)}
@@ -169,7 +177,7 @@ export default function Page() {
           <FileInput className="flex flex-col items-center justify-center rounded-xl border border-dashed border-muted px-8 py-12 hover:border-muted-foreground transition">
             <p className="text-xl font-bold">Upload an Image</p>
             <p className="text-sm text-muted-foreground">
-              Click anywhere, paste, or drag-and-drop to upload an image
+              Click anywhere to upload up to 4 images
             </p>
           </FileInput>
           <FileUploaderContent className="flex flex-row flex-wrap justify-center gap-4">
@@ -177,7 +185,7 @@ export default function Page() {
               <div className="group relative" key={u.url}>
                 <img
                   key={u.url}
-                  className="size-36 rounded-xl object-cover my-4 border border-muted"
+                  className="size-36 rounded-xl object-cover border border-muted"
                   alt="schedule screenshot"
                   src={u.url}
                 />
@@ -198,7 +206,7 @@ export default function Page() {
 
       <fieldset>
         <Label htmlFor="location">Location</Label>
-        <Select>
+        <Select name="publicLocationId">
           <SelectTrigger>
             <SelectValue placeholder="Location" />
           </SelectTrigger>
@@ -212,8 +220,19 @@ export default function Page() {
         </Select>
       </fieldset>
 
+      <fieldset>
+        <Label htmlFor="name">Resident Name</Label>
+        <Input type="text" required name="name" />
+      </fieldset>
+
+      <fieldset>
+        <Label htmlFor="extra">Other Information</Label>
+        <Textarea name="extra" />
+      </fieldset>
+
       <Button type="submit">Upload</Button>
-      <p>{actionData?.contents[0]}</p>
+      <p>{actionData?.contents[0]?.type}</p>
+      <p>{actionData?.contents[0]?.data}</p>
     </Form>
   );
 }
