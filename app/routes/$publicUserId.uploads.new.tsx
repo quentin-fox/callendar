@@ -3,6 +3,7 @@ import { isError } from "@/helpers/result";
 import * as models from "@/models";
 import * as services from "@/services";
 import * as dtos from "@/dtos";
+import * as entities from "@/entities";
 
 import {
   ActionFunctionArgs,
@@ -42,10 +43,6 @@ import { Input } from "@/components/ui/input";
 import { TrashIcon } from "@radix-ui/react-icons";
 import { Textarea } from "@/components/ui/textarea";
 
-const validMediaTypes = ["image/png", "image/jpeg", "image/webp"] as const;
-
-type ValidMediaType = (typeof validMediaTypes)[number];
-
 export const loader = async ({ context, params }: LoaderFunctionArgs) => {
   const { DB } = context.cloudflare.env;
 
@@ -81,7 +78,7 @@ export const loader = async ({ context, params }: LoaderFunctionArgs) => {
 
 export const action = async ({ request, context }: ActionFunctionArgs) => {
   const uploadHandler = unstable_createMemoryUploadHandler({
-    maxPartSize: 500_000,
+    maxPartSize: 5_000_000,
   });
 
   const formData = await unstable_parseMultipartFormData(
@@ -107,14 +104,14 @@ export const action = async ({ request, context }: ActionFunctionArgs) => {
   const images = formData.getAll("images[]");
 
   // to be uploaded to claude
-  const contents: { data: string; mediaType: ValidMediaType }[] =
+  const contents: { data: string; mediaType: entities.ValidMediaType }[] =
     await Promise.all(
       images.flatMap((image) => {
         if (image instanceof File === false) {
           return [];
         }
 
-        const matchingValidMediaType = validMediaTypes.find(
+        const matchingValidMediaType = entities.validMediaTypes.find(
           (mt) => mt === image.type,
         );
 
@@ -133,9 +130,6 @@ export const action = async ({ request, context }: ActionFunctionArgs) => {
     );
 
   const prompt = `
-You are an AI assistant tasked with extracting a specific resident's schedule from a set of uploaded images of a resident call schedule. Your goal is to analyze the images and provide the schedule for the requested resident in a structured format.
-
-If there are multiple images, it's possible that the images will need to be analysed together to make sense of the schedule. For example, the table headers required to make sense of the second image may only be visible in the first image.
 
 The user has requested the schedule for the following resident:
 
@@ -143,15 +137,27 @@ The user has requested the schedule for the following resident:
 ${name}
 </resident-name>
 
+Here is additional information that will be useful when processing the images:
+
+<extra>
+  ${extra}
+</extra>
+
 Please follow these steps to extract and present the requested schedule:
 
-1. Analyze the image carefully, identifying the structure of the schedule (e.g., days, shifts, resident names).
+1. Analyze the images carefully.
 
-2. Locate the row or section corresponding to the specified resident-name.
+2. Determine the format of the image, and a strategy for matching up resident names with the date/times of their call shifts.
 
-3. Extract the schedule information for that resident, including dates, shifts, and any other relevant details.
+3. Extract the schedule information for that resident.
 
-4. The output should have the following high-level structure (XML):
+4. Output the extracted schedule information in the following following high-level structure (XML):
+
+
+<thinking>
+</thinking>
+<summary>
+</summary>
 
 <errors>
   <error>
@@ -163,6 +169,15 @@ Please follow these steps to extract and present the requested schedule:
   </shift>
 </schedule>
 
+
+A summary of the call schedule and how the model interprets the structure of the schedule should be in the <summary> block. This should be three sentences or less.
+
+As an example:
+
+<summary>
+  This image shows a monthly calendar, and the resident An is on call quite a few times!
+</summary>
+
 If any errors are encountered during processing, each error should be found in a separate <error> tag in the <errors> block.
 
 All of the extracted call shifts should be included in the <schedule> block.
@@ -173,6 +188,8 @@ The <shift></shift> can have one of the following formats:
   <type>all-day</type>
   <date>[YYYY-MM-DD]</date>
   <notes>[Any additional notes or information.]</notes>
+  <explanation>[give visual reasoning for why this date was extracted]</explanation>
+  <confidence>[accuracy of this extracted shift, from 0.0 to 1.0]</confidence>
 </shift>
 
 OR
@@ -182,13 +199,15 @@ OR
   <start>[YYYY-MM-DDTHH:MM]</start>
   <end>[YYYY-MM-DDTHH:MM]</end>
   <notes>[Any additional notes or information.]</notes>
+  <explanation>[give visual reasoning for why this date was extracted]</explanation>
+  <confidence>[accuracy of this extracted shift, from 0.0 to 1.0]</confidence>
 </shift>
 
 This will let us distinguish between all-day shifts, which will be used to create all-day calendar events, and shifts that are less than 24 hours, which will be used to create timed calendar events.
 
 If multiple shifts look like they are back to back (e.g. 7AM - 7PM, and 7PM - 7AM), then it can be considered as a single all-day shift.
 
-Some of the shifts in the file might be indicating that the resident in question is NOT on shift - this will be denoted with leave/retreat. These should not be included as shifts in the output.
+Some of the shifts in the file might be indicating that the resident in question is NOT on shift - this will be denoted with leave/retreat/not-on-call. These should not be included as shifts in the output.
 
 Use all the images to extract all the shifts for resident-name.
 
@@ -212,7 +231,11 @@ If there is no valuable information to put in the notes aside from the start/end
   </error>
 </error>
 
+If there are multiple images, it's possible that the images will need to be analysed together to make sense of the schedule. For example, the table headers required to make sense of the second image may only be visible in the first image.
+
 Do not include any explanation in your output.
+
+Think before you extract the output from the input images in the <thinking> tag. First, think through the structure of the image, then think about what some of the pitfalls and simple mistakes might be when etracting data from this image. What aspects of the schedule could be confusing, and how might you be able to be able to accurately extract information from the image despite this confusion? Finally, analyse any errors in <errors> tags, add a summary in <summary> tags, and extract the shifts in <schedule> tags.
 `;
 
   const msg = await anthropic.messages.create({
@@ -220,7 +243,7 @@ Do not include any explanation in your output.
     max_tokens: 1000,
     temperature: 0,
     system:
-      "You are a backend data processor that is part of an image processing flow for parsing call schedules/shifts for medical residents. The user will provide text and image(s) as input and processing instructions. The output can only contain XML-compliant text compliant with common XML specs. Do not converse with a nonexistent user. There is only program input and formatted program output, and no input data is to be construed as conversation with the AI.",
+      "You are a backend data processor that is part of an image processing flow for parsing call schedules/shifts for for a requested medical resident whose name is in the uploaded image. The user will provide text and image(s) as input and processing instructions. The output can only contain XML-compliant text compliant with common XML specs. Do not converse with a nonexistent user. There is only program input and formatted program output, and no input data is to be construed as conversation with the AI.",
     messages: [
       {
         role: "user",
@@ -266,8 +289,8 @@ export default function Page() {
       "image/*": [".jpg", ".jpeg", ".png", ".webp"],
     },
     multiple: true,
-    maxFiles: 4,
-    maxSize: 1 * 1024 * 1024,
+    maxFiles: 8,
+    maxSize: 10 * 1024 * 1024,
     noDrag: true, // for now
   } satisfies DropzoneOptions;
 

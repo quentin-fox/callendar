@@ -39,3 +39,38 @@ export type Shift = {
   end: string; // ISO
   isAllDay: boolean;
 };
+
+export const validMediaTypes = [
+  "image/png",
+  "image/jpeg",
+  "image/webp",
+] as const;
+
+export type ValidMediaType = (typeof validMediaTypes)[number];
+
+export type UploadInput = {
+  name: string;
+  extra: string | null;
+  contents: {
+    data: string;
+    mediaType: ValidMediaType;
+  }[];
+};
+
+type AllDayShiftOutput = {
+  type: "all-day";
+  date: string;
+};
+
+type TimedShiftOutput = {
+  type: "timed";
+  start: string;
+  end: string;
+};
+
+type ShiftOutput = AllDayShiftOutput | TimedShiftOutput;
+
+export type UploadOutput = {
+  errors: string[];
+  shifts: ShiftOutput[];
+};
