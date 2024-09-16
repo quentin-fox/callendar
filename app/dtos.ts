@@ -30,3 +30,14 @@ export type Shift = {
   end: string; // ISO
   isAllDay: boolean;
 };
+
+export type AllDayShiftOutput = {
+  type: "all-day";
+  date: string;
+};
+
+export type TimedShiftOutput = {
+  type: "timed";
+  start: string;
+  end: string;
+};

@@ -25,6 +25,11 @@ export type Schedule = {
   isDraft: boolean;
 };
 
+export type UploadImage = {
+  data: string;
+  mediaType: ValidMediaType;
+};
+
 export type Shift = {
   id: number;
   publicId: string;
@@ -68,7 +73,7 @@ type TimedShiftOutput = {
   end: string;
 };
 
-type ShiftOutput = AllDayShiftOutput | TimedShiftOutput;
+export type ShiftOutput = AllDayShiftOutput | TimedShiftOutput;
 
 export type UploadOutput = {
   errors: string[];

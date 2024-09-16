@@ -104,7 +104,7 @@ export default function Page() {
             <TableBody>
               {locations.map((location) => (
                 <TableRow key={location.publicId}>
-                  <TableCell className="w-80">{location.title}</TableCell>
+                  <TableCell className="w-64">{location.title}</TableCell>
                   <TableCell>{location.publicId}</TableCell>
                   <TableCell>{location.createdAt}</TableCell>
                   <TableCell>
