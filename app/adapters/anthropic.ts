@@ -77,7 +77,7 @@ OR
   <confidence>[accuracy of this extracted shift, from 0.0 to 1.0]</confidence>
 </shift>
 
-This will let us distinguish between all-day shifts, which will be used to create all-day calendar events, and shifts that are less than 24 hours, which will be used to create timed calendar events.
+This will let us distinguish between all-day shifts, which will be used to create all-day calendar events, and shifts that are less than 24 hours, which will be used to create timed calendar events. The times should just be taken as-is, with no extra time-zone logic applied.
 
 If multiple shifts look like they are back to back (e.g. 7AM - 7PM, and 7PM - 7AM), then it can be considered as a single all-day shift.
 
