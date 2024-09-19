@@ -16,6 +16,14 @@ type Row = {
   claimed: boolean;
 };
 
+const INSERT_QUERY = `
+INSERT INTO schedules
+  (public_id, user_id, created_at, title, description, location_id, is_draft)
+VALUES
+  (?, ?, ?, ?, ?, ?, ?)
+RETURNING id;
+`;
+
 export async function insert(
   db: D1Database,
   options: {
@@ -28,14 +36,6 @@ export async function insert(
     isDraft: boolean;
   },
 ): Promise<number> {
-  const query = `
-INSERT INTO schedules
-  (public_id, user_id, created_at, title, description, location_id, is_draft)
-VALUES
-  (?, ?, ?, ?, ?, ?, ?)
-RETURNING id;
-`;
-
   const parameters = [
     options.publicId,
     options.userId,
@@ -46,7 +46,7 @@ RETURNING id;
     options.isDraft,
   ];
   const result = await db
-    .prepare(query)
+    .prepare(INSERT_QUERY)
     .bind(...parameters)
     .first<{ id: number }>();
 
@@ -55,6 +55,41 @@ RETURNING id;
   }
 
   return result.id;
+}
+
+export async function insertMany(
+  db: D1Database,
+  options: {
+    publicId: string;
+    userId: string;
+    createdAt: number;
+    title: string;
+    description: string;
+    locationId: string;
+    isDraft: boolean;
+  }[],
+): Promise<number[]> {
+  const statement = db.prepare(INSERT_QUERY);
+
+  const batchResults = await db.batch<{ id: number }>(
+    options.map((o) =>
+      statement.bind([
+        o.publicId,
+        o.userId,
+        o.createdAt,
+        o.title,
+        o.description,
+        o.locationId,
+        o.isDraft,
+      ]),
+    ),
+  );
+
+  const shiftIds = batchResults.flatMap((result) =>
+    result.results.map((row) => row.id),
+  );
+
+  return shiftIds;
 }
 
 function toEntity(row: Row): entities.Shift {
