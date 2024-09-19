@@ -137,6 +137,20 @@ export const action = async ({
   invariant(Number.isInteger(numShifts), "numShifts is not an integer");
   invariant(numShifts > 0, "numShifts must be positive");
 
+  const title = formData.get("title");
+  invariant(typeof title == "string", "title not found");
+
+  const description = formData.get("description");
+  invariant(typeof description == "string", "description not found");
+
+  const isDraftStr = formData.get("isDraft");
+  invariant(typeof description == "string", "description not found");
+
+  const isDraft =
+    isDraftStr === "true" ? true : isDraftStr === "false" ? false : null;
+
+  invariant(typeof isDraft === "boolean", "isDraft must be true/false");
+
   const shifts: (
     | {
         type: "all-day";
@@ -183,9 +197,9 @@ export const action = async ({
     {
       publicLocationId,
       publicUserId,
-      title: "new schedule",
-      description: "",
-      isDraft: true,
+      title,
+      description,
+      isDraft,
       shifts,
     },
   );
@@ -480,7 +494,7 @@ function ShiftsForm(props: {
         </fieldset>
 
         <fieldset className="items-top flex space-x-2">
-          <Checkbox id="isDraft" />
+          <Checkbox id="isDraft" defaultChecked={true} />
           <div className="grid gap-1.5 leading-none">
             <label
               htmlFor="isDraft"
