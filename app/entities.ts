@@ -22,9 +22,12 @@ export type Schedule = {
   removedAt: string | null;
   title: string;
   description: string;
-  locationId: number;
+  location: Location;
   userId: number;
   isDraft: boolean;
+  numShifts: number;
+  firstShiftStart: string | null;
+  lastShiftStart: string | null;
 };
 
 export type UploadImage = {

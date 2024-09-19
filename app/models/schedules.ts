@@ -9,8 +9,15 @@ type Row = {
   title: string;
   description: string;
   location_id: number;
+  location_title: string;
+  location_public_id: string;
+  location_created_at: number;
+  location_user_id: number;
   user_id: number;
   is_draft: boolean;
+  num_shifts: number;
+  first_shift_start: number | null;
+  last_shift_start: number | null;
 };
 
 export async function insert(
@@ -65,9 +72,24 @@ function toEntity(row: Row): entities.Schedule {
       row.removed_at === null ? null : new Date(row.removed_at).toISOString(),
     title: row.title,
     description: row.description,
-    locationId: row.location_id,
     userId: row.user_id,
     isDraft: row.is_draft,
+    location: {
+      id: row.location_id,
+      publicId: row.location_public_id,
+      createdAt: new Date(row.location_created_at).toISOString(),
+      title: row.location_title,
+      userId: row.location_user_id,
+    },
+    numShifts: row.num_shifts,
+    firstShiftStart:
+      row.first_shift_start === null
+        ? null
+        : new Date(row.first_shift_start).toISOString(),
+    lastShiftStart:
+      row.last_shift_start === null
+        ? null
+        : new Date(row.last_shift_start).toISOString(),
   };
 }
 
@@ -77,20 +99,46 @@ export async function listOne(
 ): Promise<entities.Schedule | null> {
   const query = `
 SELECT
-  id,
-  public_id,
-  created_at,
-  modified_at,
-  removed_at,
-  title,
-  description,
+  schedules.id,
+  schedules.public_id,
+  schedules.created_at,
+  schedules.modified_at,
+  schedules.removed_at,
+  schedules.title,
+  schedules.description,
+  schedules.user_id,
+  schedules.is_draft,
   location_id,
-  user_id,
-  is_draft
+  locations.title as location_title,
+  locations.public_id as location_public_id,
+  locations.created_at as location_created_at,
+  locations.user_id as location_user_id,
+  (
+    SELECT COUNT(*)
+    FROM shifts
+    WHERE
+      shifts.schedule_id = schedules.id
+      AND shifts.removed_at IS NULL
+  ) as "num_shifts",
+  (
+    SELECT MIN(shifts.start)
+    FROM shifts
+    WHERE
+      shifts.schedule_id = schedules.id
+      AND shifts.removed_at IS NULL
+  ) as "first_shift_start",
+  (
+    SELECT MAX(shifts.start)
+    FROM shifts
+    WHERE
+      shifts.schedule_id = schedules.id
+      AND shifts.removed_at IS NULL
+  ) as "last_shift_start"
 FROM
   schedules
+  JOIN locations on schedules.location_id = locations.id
 WHERE
-  public_id = ?;
+  schedules.public_id = ?;
 `;
 
   const parameters = [options.publicScheduleId];
@@ -113,21 +161,47 @@ export async function list(
 ): Promise<entities.Schedule[]> {
   const query = `
 SELECT
-  id,
-  public_id,
-  created_at,
-  modified_at,
-  removed_at,
-  title,
-  description,
+  schedules.id,
+  schedules.public_id,
+  schedules.created_at,
+  schedules.modified_at,
+  schedules.removed_at,
+  schedules.title,
+  schedules.description,
+  schedules.user_id,
+  schedules.is_draft,
   location_id,
-  user_id,
-  is_draft
+  locations.title as location_title,
+  locations.public_id as location_public_id,
+  locations.created_at as location_created_at,
+  locations.user_id as location_user_id,
+  (
+    SELECT COUNT(*)
+    FROM shifts
+    WHERE
+      shifts.schedule_id = schedules.id
+      AND shifts.removed_at IS NULL
+  ) as "num_shifts",
+  (
+    SELECT MIN(shifts.start)
+    FROM shifts
+    WHERE
+      shifts.schedule_id = schedules.id
+      AND shifts.removed_at IS NULL
+  ) as "first_shift_start",
+  (
+    SELECT MAX(shifts.start)
+    FROM shifts
+    WHERE
+      shifts.schedule_id = schedules.id
+      AND shifts.removed_at IS NULL
+  ) as "last_shift_start"
 FROM
   schedules
+  JOIN locations on schedules.location_id = locations.id
 WHERE
-  removed_at IS NULL AND
-  user_id = ?;
+  schedules.removed_at IS NULL AND
+  schedules.user_id = ?;
 `;
 
   const parameters = [options.userId];

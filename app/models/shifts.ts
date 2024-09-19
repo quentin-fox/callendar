@@ -214,7 +214,7 @@ SELECT
 FROM
   shifts
 WHERE
-  removed_at IS NOT NULL
+  removed_at IS NULL
   AND schedule_id = ?;
 `;
 
@@ -247,9 +247,9 @@ SELECT
   shifts.is_all_day,
   shifts.claimed
 FROM
-  shifts JOIN locations ON shifts.location_id = locations.id
+  shifts JOIN schedules ON shifts.schedule_id = schedules.id
 WHERE
-  shifts.removed_at IS NOT NULL
+  shifts.removed_at IS NULL
   AND schedules.user_id = ?;
 `;
 

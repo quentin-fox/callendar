@@ -117,3 +117,25 @@ export async function insert(
 
   return ok(publicScheduleId);
 }
+
+export async function list(
+  listOneUser: (options: {
+    publicUserId: string;
+  }) => Promise<entities.User | null>,
+  listSchedules: (options: { userId: number }) => Promise<entities.Schedule[]>,
+  options: { publicUserId: string },
+): Promise<Result<entities.Schedule[], string>> {
+  const user = await listOneUser({
+    publicUserId: options.publicUserId,
+  });
+
+  if (!user) {
+    return error("User does not exist.");
+  }
+
+  const schedules = await listSchedules({
+    userId: user.id,
+  });
+
+  return ok(schedules);
+}
