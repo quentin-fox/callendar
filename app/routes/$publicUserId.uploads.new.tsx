@@ -105,6 +105,8 @@ export default function Page() {
       }
   >();
 
+  const processSectionDisabled = !!processUploadFetcher.data?.shifts;
+
   const dropZoneConfig = {
     accept: {
       "image/*": [".jpg", ".jpeg", ".png", ".webp"],
@@ -113,6 +115,7 @@ export default function Page() {
     maxFiles: 8,
     maxSize: 10 * 1024 * 1024,
     noDrag: true, // for now
+    disabled: processSectionDisabled,
   } satisfies DropzoneOptions;
 
   const handleChangeFiles = useCallback((files: File[] | null) => {
@@ -157,7 +160,7 @@ export default function Page() {
         encType="multipart/form-data"
         className="flex flex-col gap-4"
       >
-        <fieldset>
+        <fieldset disabled={processSectionDisabled}>
           <FileUploader
             value={uploads.map((u) => u.file)}
             onValueChange={handleChangeFiles}
@@ -194,17 +197,17 @@ export default function Page() {
           </FileUploader>
         </fieldset>
 
-        <fieldset>
+        <fieldset disabled={processSectionDisabled}>
           <Label htmlFor="name">Resident Name</Label>
           <Input type="text" required name="name" />
         </fieldset>
 
-        <fieldset>
+        <fieldset disabled={processSectionDisabled}>
           <Label htmlFor="extra">Other Information</Label>
           <Textarea name="extra" />
         </fieldset>
 
-        <Button type="submit" disabled={!!processUploadFetcher.data?.shifts}>
+        <Button type="submit" disabled={processSectionDisabled}>
           {processUploadFetcher.data?.shifts
             ? "Uploaded"
             : processUploadFetcher.state === "idle"

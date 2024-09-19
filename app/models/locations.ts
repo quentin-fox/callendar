@@ -2,6 +2,14 @@ import invariant from "tiny-invariant";
 
 import * as entities from "@/entities";
 
+type Row = {
+  id: number;
+  public_id: string;
+  created_at: number;
+  title: string;
+  user_id: number;
+};
+
 export async function insert(
   db: D1Database,
   options: {
@@ -87,13 +95,7 @@ RETURNING id;
   return result.id;
 }
 
-function toEntity(row: {
-  id: number;
-  public_id: string;
-  created_at: number;
-  title: string;
-  user_id: number;
-}): entities.Location {
+function toEntity(row: Row): entities.Location {
   return {
     id: row.id,
     publicId: row.public_id,
@@ -121,13 +123,7 @@ WHERE
   AND user_id = ?;
 `;
 
-  const { results } = await db.prepare(query).bind(options.userId).all<{
-    id: number;
-    public_id: string;
-    created_at: number;
-    title: string;
-    user_id: number;
-  }>();
+  const { results } = await db.prepare(query).bind(options.userId).all<Row>();
 
   return results.map(toEntity);
 }
@@ -150,17 +146,14 @@ WHERE
   AND public_id = ?;
 `;
 
-  const result = await db.prepare(query).bind(options.publicLocationId).first<{
-    id: number;
-    public_id: string;
-    created_at: number;
-    title: string;
-    user_id: number;
-  }>();
+  const row = await db
+    .prepare(query)
+    .bind(options.publicLocationId)
+    .first<Row>();
 
-  if (!result) {
+  if (!row) {
     return null;
   }
 
-  return toEntity(result);
+  return toEntity(row);
 }

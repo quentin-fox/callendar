@@ -19,9 +19,11 @@ export type Schedule = {
   publicId: string;
   createdAt: string; // ISO
   modifiedAt: string | null;
+  removedAt: string | null;
   title: string;
   description: string;
-  locationId: string | null;
+  locationId: number;
+  userId: number;
   isDraft: boolean;
 };
 
