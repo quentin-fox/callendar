@@ -144,12 +144,7 @@ export const action = async ({
   invariant(typeof description == "string", "description not found");
 
   const isDraftStr = formData.get("isDraft");
-  invariant(typeof description == "string", "description not found");
-
-  const isDraft =
-    isDraftStr === "true" ? true : isDraftStr === "false" ? false : null;
-
-  invariant(typeof isDraft === "boolean", "isDraft must be true/false");
+  const isDraft = isDraftStr === "on";
 
   const shifts: (
     | {
@@ -208,9 +203,8 @@ export const action = async ({
     return json({ error: result.error });
   }
 
-  const publicScheduleId = result.value;
-
-  return redirect("/" + publicUserId + "/schedules/" + publicScheduleId);
+  // TODO redirect to the single schedule page
+  return redirect("/" + publicUserId + "/schedules");
 };
 
 export default function Page() {
@@ -494,7 +488,7 @@ function ShiftsForm(props: {
         </fieldset>
 
         <fieldset className="items-top flex space-x-2">
-          <Checkbox id="isDraft" defaultChecked={true} />
+          <Checkbox id="isDraft" name="isDraft" defaultChecked={true} />
           <div className="grid gap-1.5 leading-none">
             <label
               htmlFor="isDraft"
@@ -618,6 +612,8 @@ function ShiftsForm(props: {
                       id={`end-${index}`}
                       type="datetime-local"
                       value={shift.end}
+                      // don't need the max on the first input
+                      min={shift.start}
                       onChange={(event) =>
                         handleTimedShiftEndChange(
                           shift,
