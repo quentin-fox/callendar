@@ -16,11 +16,63 @@ type Row = {
   claimed: boolean;
 };
 
+function toParameters(options: {
+  publicId: string;
+  createdAt: number;
+  title: string;
+  description: string;
+  locationId: number;
+  scheduleId: number;
+  userId: number;
+  start: number;
+  end: number;
+  isAllDay: boolean;
+  claimed: boolean;
+}) {
+  return [
+    options.publicId,
+    options.createdAt,
+    options.title,
+    options.description,
+    options.locationId,
+    options.scheduleId,
+    options.userId,
+    options.start,
+    options.end,
+    options.isAllDay,
+    options.claimed,
+  ];
+}
+
 const INSERT_QUERY = `
-INSERT INTO schedules
-  (public_id, user_id, created_at, title, description, location_id, is_draft)
+INSERT INTO shifts
+  (
+    public_id,
+    created_at,
+    title,
+    description,
+    location_id,
+    schedule_id,
+    user_id,
+    start,
+    end,
+    is_all_day,
+    claimed
+  )
 VALUES
-  (?, ?, ?, ?, ?, ?, ?)
+  (
+    ?,
+    ?,
+    ?,
+    ?,
+    ?,
+    ?,
+    ?,
+    ?,
+    ?,
+    ?,
+    ?
+  )
 RETURNING id;
 `;
 
@@ -28,26 +80,21 @@ export async function insert(
   db: D1Database,
   options: {
     publicId: string;
-    userId: string;
     createdAt: number;
     title: string;
     description: string;
-    locationId: string;
-    isDraft: boolean;
+    locationId: number;
+    scheduleId: number;
+    userId: number;
+    start: number;
+    end: number;
+    isAllDay: boolean;
+    claimed: boolean;
   },
 ): Promise<number> {
-  const parameters = [
-    options.publicId,
-    options.userId,
-    options.createdAt,
-    options.title,
-    options.description,
-    options.locationId,
-    options.isDraft,
-  ];
   const result = await db
     .prepare(INSERT_QUERY)
-    .bind(...parameters)
+    .bind(...toParameters(options))
     .first<{ id: number }>();
 
   if (!result) {
@@ -61,28 +108,22 @@ export async function insertMany(
   db: D1Database,
   options: {
     publicId: string;
-    userId: string;
     createdAt: number;
     title: string;
     description: string;
-    locationId: string;
-    isDraft: boolean;
+    locationId: number;
+    scheduleId: number;
+    userId: number;
+    start: number;
+    end: number;
+    isAllDay: boolean;
+    claimed: boolean;
   }[],
 ): Promise<number[]> {
   const statement = db.prepare(INSERT_QUERY);
 
   const batchResults = await db.batch<{ id: number }>(
-    options.map((o) =>
-      statement.bind([
-        o.publicId,
-        o.userId,
-        o.createdAt,
-        o.title,
-        o.description,
-        o.locationId,
-        o.isDraft,
-      ]),
-    ),
+    options.map((o) => statement.bind(...toParameters(o))),
   );
 
   const shiftIds = batchResults.flatMap((result) =>

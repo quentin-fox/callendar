@@ -17,11 +17,11 @@ export async function insert(
   db: D1Database,
   options: {
     publicId: string;
-    userId: string;
+    userId: number;
     createdAt: number;
     title: string;
     description: string;
-    locationId: string;
+    locationId: number;
     isDraft: boolean;
   },
 ): Promise<number> {

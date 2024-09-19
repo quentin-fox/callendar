@@ -100,8 +100,7 @@ export default function Page() {
               <Input
                 id="timeZone"
                 value={Intl.DateTimeFormat().resolvedOptions().timeZone}
-                className="hidden"
-                type="text"
+                type="hidden"
                 name="timeZone"
                 readOnly
               />
