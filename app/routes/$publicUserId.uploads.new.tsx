@@ -295,6 +295,107 @@ function ShiftsForm(props: {
 }) {
   const [shifts, setShifts] = useState(props.shifts);
 
+  const handleAllDayShiftDateChange = (
+    shift: dtos.AllDayShiftOutput,
+    index: number,
+    newDate: string,
+  ) => {
+    setShifts((prev) =>
+      prev.map((s, i) => {
+        if (i !== index) {
+          return s;
+        }
+
+        return { ...shift, date: newDate };
+      }),
+    );
+  };
+
+  const handleTimedShiftStartChange = (
+    shift: dtos.TimedShiftOutput,
+    index: number,
+    newStart: string,
+  ) => {
+    setShifts((prev) =>
+      prev.map((s, i) => {
+        if (i !== index) {
+          return s;
+        }
+
+        return { ...shift, start: newStart };
+      }),
+    );
+  };
+
+  const handleTimedShiftEndChange = (
+    shift: dtos.TimedShiftOutput,
+    index: number,
+    newEnd: string,
+  ) => {
+    setShifts((prev) =>
+      prev.map((s, i) => {
+        if (i !== index) {
+          return s;
+        }
+        return { ...shift, end: newEnd };
+      }),
+    );
+  };
+
+  const handleChangeToTimedShift = (
+    shift: dtos.AllDayShiftOutput,
+    index: number,
+  ) => {
+    setShifts((prev) =>
+      prev.map((s, i) => {
+        if (i !== index) {
+          return s;
+        }
+
+        // TODO get just the time, not the full ISO timestamp
+        return {
+          type: "timed",
+          start: new Date(shift.date).toISOString(),
+          end: new Date(shift.date).toISOString(),
+        };
+      }),
+    );
+  };
+
+  const handleChangeToAllDayShift = (
+    shift: dtos.TimedShiftOutput,
+    index: number,
+  ) => {
+    setShifts((prev) =>
+      prev.map((s, i) => {
+        if (i !== index) {
+          return s;
+        }
+
+        return {
+          type: "all-day",
+          // TODO use date-fns for this
+          date: shift.start.split("T")[0],
+        };
+      }),
+    );
+  };
+
+  const handleRemoveShift = (
+    shift: dtos.AllDayShiftOutput | dtos.TimedShiftOutput,
+    index: number,
+  ) => {
+    setShifts((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const COLUMN_CLASSES = {
+    type: "w-32",
+    duration: "w-32",
+    start: "w-[30%]",
+    end: "w-[30%]",
+    actions: "w-12",
+  };
+
   return (
     <Form method="POST" className="flex flex-col gap-4">
       <fieldset>
@@ -316,11 +417,13 @@ function ShiftsForm(props: {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className="w-32">Shift Type</TableHead>
-            <TableHead className="w-32">Duration (h)</TableHead>
-            <TableHead className="w-[30%]">Start</TableHead>
-            <TableHead className="w-[30%]">End</TableHead>
-            <TableHead className="w-12" />
+            <TableHead className={COLUMN_CLASSES.type}>Shift Type</TableHead>
+            <TableHead className={COLUMN_CLASSES.duration}>
+              Duration (h)
+            </TableHead>
+            <TableHead className={COLUMN_CLASSES.start}>Start</TableHead>
+            <TableHead className={COLUMN_CLASSES.end}>End</TableHead>
+            <TableHead className={COLUMN_CLASSES.actions} />
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -328,33 +431,26 @@ function ShiftsForm(props: {
             if (shift.type === "all-day") {
               return (
                 <TableRow key={index}>
-                  <TableCell className="w-32">All-Day</TableCell>
-                  <TableCell className="w-32">24</TableCell>
-                  <TableCell className="w-[30%]">
+                  <TableCell className={COLUMN_CLASSES.type}>All-Day</TableCell>
+                  <TableCell className={COLUMN_CLASSES.duration}>24</TableCell>
+                  <TableCell className={COLUMN_CLASSES.start}>
                     <Input
                       id={`start-${index}`}
                       type="date"
                       value={shift.date}
-                      onChange={(event) => {
-                        setShifts((prev) =>
-                          prev.map((s, i) => {
-                            if (i !== index) {
-                              return s;
-                            }
-
-                            return {
-                              ...shift,
-                              date: event.target.value,
-                            };
-                          }),
-                        );
-                      }}
+                      onChange={(event) =>
+                        handleAllDayShiftDateChange(
+                          shift,
+                          index,
+                          event.target.value,
+                        )
+                      }
                       required
                       name={`start-${index}`}
                     />
                   </TableCell>
-                  <TableCell className="w-[30%]">-</TableCell>
-                  <TableCell className="w-12">
+                  <TableCell className={COLUMN_CLASSES.end}>-</TableCell>
+                  <TableCell className={COLUMN_CLASSES.actions}>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button variant="outline" size="icon">
@@ -364,32 +460,16 @@ function ShiftsForm(props: {
                       <DropdownMenuContent>
                         <DropdownMenuItem>Edit</DropdownMenuItem>
                         <DropdownMenuItem
-                          onSelect={() => {
-                            setShifts((prev) =>
-                              prev.map((s, i) => {
-                                if (i !== index) {
-                                  return s;
-                                }
-
-                                return {
-                                  type: "timed",
-                                  start: new Date(shift.date).toISOString(),
-                                  end: new Date(shift.date).toISOString(),
-                                };
-                              }),
-                            );
-                          }}
+                          onSelect={() =>
+                            handleChangeToTimedShift(shift, index)
+                          }
                         >
                           Change to Timed Shift
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
                           className="text-destructive"
-                          onSelect={() => {
-                            setShifts((prev) =>
-                              prev.filter((_, i) => i !== index),
-                            );
-                          }}
+                          onSelect={() => handleRemoveShift(shift, index)}
                         >
                           Remove
                         </DropdownMenuItem>
@@ -402,55 +482,43 @@ function ShiftsForm(props: {
 
             return (
               <TableRow key={index}>
-                <TableCell className="w-32">Timed</TableCell>
-                <TableCell className="w-32">12{/* TODO calculate */}</TableCell>
-                <TableCell className="w-[30%]">
+                <TableCell className={COLUMN_CLASSES.type}>Timed</TableCell>
+                <TableCell className={COLUMN_CLASSES.duration}>
+                  12{/* TODO calculate */}
+                </TableCell>
+                <TableCell className={COLUMN_CLASSES.start}>
                   <Input
                     id={`start-${index}`}
                     type="datetime-local"
                     value={shift.start}
-                    onChange={(event) => {
-                      setShifts((prev) =>
-                        prev.map((s, i) => {
-                          if (i !== index) {
-                            return s;
-                          }
-
-                          return {
-                            ...shift,
-                            start: event.target.value,
-                          };
-                        }),
-                      );
-                    }}
+                    onChange={(event) =>
+                      handleTimedShiftStartChange(
+                        shift,
+                        index,
+                        event.target.value,
+                      )
+                    }
                     required
                     name={`start-${index}`}
                   />
                 </TableCell>
-                <TableCell className="w-[30%]">
+                <TableCell className={COLUMN_CLASSES.end}>
                   <Input
                     id={`end-${index}`}
                     type="datetime-local"
                     value={shift.end}
-                    onChange={(event) => {
-                      setShifts((prev) =>
-                        prev.map((s, i) => {
-                          if (i !== index) {
-                            return s;
-                          }
-
-                          return {
-                            ...shift,
-                            end: event.target.value,
-                          };
-                        }),
-                      );
-                    }}
+                    onChange={(event) =>
+                      handleTimedShiftEndChange(
+                        shift,
+                        index,
+                        event.target.value,
+                      )
+                    }
                     required
                     name={`end-${index}`}
                   />
                 </TableCell>
-                <TableCell className="w-12">
+                <TableCell className={COLUMN_CLASSES.actions}>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button variant="outline" size="icon">
@@ -460,31 +528,14 @@ function ShiftsForm(props: {
                     <DropdownMenuContent>
                       <DropdownMenuItem>Edit</DropdownMenuItem>
                       <DropdownMenuItem
-                        onSelect={() => {
-                          setShifts((prev) =>
-                            prev.map((s, i) => {
-                              if (i !== index) {
-                                return s;
-                              }
-
-                              return {
-                                type: "all-day",
-                                date: shift.start.split("T")[0],
-                              };
-                            }),
-                          );
-                        }}
+                        onSelect={() => handleChangeToAllDayShift(shift, index)}
                       >
                         Change to All-Day Shift
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem
                         className="text-destructive"
-                        onSelect={() => {
-                          setShifts((prev) =>
-                            prev.filter((_, i) => i !== index),
-                          );
-                        }}
+                        onSelect={() => handleRemoveShift(shift, index)}
                       >
                         Remove
                       </DropdownMenuItem>
