@@ -9,8 +9,11 @@ type Row = {
   title: string;
   description: string;
   location_id: number;
-  user_id: number;
-  is_draft: boolean;
+  schedule_id: number;
+  start: number;
+  end: number;
+  is_all_day: boolean;
+  claimed: boolean;
 };
 
 export async function insert(
@@ -54,27 +57,30 @@ RETURNING id;
   return result.id;
 }
 
-function toEntity(row: Row): entities.Schedule {
+function toEntity(row: Row): entities.Shift {
   return {
     id: row.id,
     publicId: row.public_id,
     createdAt: new Date(row.created_at).toISOString(),
     modifiedAt:
-      row.modified_at === null ? null : new Date(row.modified_at).toISOString(),
+      row.modified_at === null ? null : new Date(row.created_at).toISOString(),
     removedAt:
-      row.removed_at === null ? null : new Date(row.removed_at).toISOString(),
+      row.removed_at === null ? null : new Date(row.created_at).toISOString(),
     title: row.title,
     description: row.description,
     locationId: row.location_id,
-    userId: row.user_id,
-    isDraft: row.is_draft,
+    scheduleId: row.schedule_id,
+    start: new Date(row.start).toISOString(),
+    end: new Date(row.end).toISOString(),
+    isAllDay: row.is_all_day,
+    claimed: row.claimed,
   };
 }
 
 export async function listOne(
   db: D1Database,
-  options: { publicScheduleId: string },
-): Promise<entities.Schedule | null> {
+  options: { publicShiftId: string },
+): Promise<entities.Shift | null> {
   const query = `
 SELECT
   id,
@@ -85,15 +91,18 @@ SELECT
   title,
   description,
   location_id,
-  user_id,
-  is_draft
+  schedule_id,
+  start,
+  end,
+  is_all_day,
+  claimed
 FROM
-  schedules
+  shifts
 WHERE
   public_id = ?;
 `;
 
-  const parameters = [options.publicScheduleId];
+  const parameters = [options.publicShiftId];
 
   const row = await db
     .prepare(query)
@@ -107,10 +116,10 @@ WHERE
   return toEntity(row);
 }
 
-export async function list(
+export async function listBySchedule(
   db: D1Database,
-  options: { userId: number },
-): Promise<entities.Schedule[]> {
+  options: { scheduleId: number },
+): Promise<entities.Shift[]> {
   const query = `
 SELECT
   id,
@@ -121,13 +130,51 @@ SELECT
   title,
   description,
   location_id,
-  user_id,
-  is_draft
+  schedule_id,
+  start,
+  end,
+  is_all_day,
+  claimed
 FROM
-  schedules
+  shifts
 WHERE
-  removed_at IS NULL AND
-  user_id = ?;
+  removed_at IS NOT NULL
+  AND schedule_id = ?;
+`;
+
+  const parameters = [options.scheduleId];
+  const { results } = await db
+    .prepare(query)
+    .bind(...parameters)
+    .all<Row>();
+
+  return results.map(toEntity);
+}
+
+export async function listByUser(
+  db: D1Database,
+  options: { userId: number },
+): Promise<entities.Shift[]> {
+  const query = `
+SELECT
+  shifts.id,
+  shifts.public_id,
+  shifts.created_at,
+  shifts.modified_at,
+  shifts.removed_at,
+  shifts.title,
+  shifts.description,
+  shifts.location_id,
+  shifts.schedule_id,
+  shifts.start,
+  shifts.end,
+  shifts.is_all_day,
+  shifts.claimed
+FROM
+  shifts JOIN locations ON shifts.location_id = locations.id
+WHERE
+  shifts.removed_at IS NOT NULL
+  AND schedules.user_id = ?;
 `;
 
   const parameters = [options.userId];

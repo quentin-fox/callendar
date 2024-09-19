@@ -45,6 +45,7 @@ export type Shift = {
   start: string; // ISO
   end: string; // ISO
   isAllDay: boolean;
+  claimed: boolean;
 };
 
 export const validMediaTypes = [
