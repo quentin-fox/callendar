@@ -212,3 +212,64 @@ WHERE
 
   return results.map(toEntity);
 }
+
+export async function update(
+  db: D1Database,
+  options: {
+    scheduleId: number;
+    title: string;
+    description: string;
+    locationId: number;
+    isDraft: boolean;
+    modifiedAt: number;
+  },
+): Promise<void> {
+  const query = `
+UPDATE schedules
+SET
+  title = $1,
+  description = $2,
+  locationId = $3,
+  is_draft = $4,
+  modified_at = $5
+WHERE
+  id = $6;
+`;
+
+  const parameters = [
+    options.title,
+    options.description,
+    options.locationId,
+    options.isDraft,
+    options.modifiedAt,
+    options.scheduleId,
+  ];
+
+  await db
+    .prepare(query)
+    .bind(...parameters)
+    .run();
+}
+
+export async function remove(
+  db: D1Database,
+  options: {
+    scheduleId: number;
+    removedAt: number;
+  },
+): Promise<void> {
+  const query = `
+UPDATE schedules
+SET
+  removed_at = $1
+WHERE
+  id = $2;
+`;
+
+  const parameters = [options.removedAt, options.scheduleId];
+
+  await db
+    .prepare(query)
+    .bind(...parameters)
+    .run();
+}

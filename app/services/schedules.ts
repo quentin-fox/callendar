@@ -73,6 +73,7 @@ export async function insert(
   const createdAt = Date.now();
 
   const title = options.title.trim();
+  const description = options.description.trim();
 
   const slug = slugify(title).substring(0, 30);
 
@@ -80,8 +81,8 @@ export async function insert(
 
   const scheduleId = await insertSchedule({
     publicId: publicScheduleId,
-    title: options.title,
-    description: options.description,
+    title,
+    description,
     isDraft: options.isDraft,
     userId: user.id,
     createdAt,
@@ -118,6 +119,119 @@ export async function insert(
   return ok(publicScheduleId);
 }
 
+export async function update(
+  listOneUser: (options: {
+    publicUserId: string;
+  }) => Promise<entities.User | null>,
+  listLocations: (options: { userId: number }) => Promise<entities.Location[]>,
+  listSchedules: (options: { userId: number }) => Promise<entities.Schedule[]>,
+  updateSchedule: (options: {
+    scheduleId: number;
+    title: string;
+    description: string;
+    locationId: number;
+    isDraft: boolean;
+    modifiedAt: number;
+  }) => Promise<void>,
+  options: {
+    publicUserId: string;
+    publicScheduleId: string;
+    title: string;
+    description: string;
+    publicLocationId: string;
+    isDraft: boolean;
+  },
+): Promise<Result<string, string>> {
+  const user = await listOneUser({
+    publicUserId: options.publicUserId,
+  });
+
+  if (!user) {
+    return error("User does not exist.");
+  }
+
+  const schedules = await listSchedules({
+    userId: user.id,
+  });
+
+  const schedule = schedules.find(
+    (s) => s.publicId === options.publicScheduleId,
+  );
+
+  if (!schedule) {
+    return error("Schedule does not exist.");
+  }
+
+  const locations = await listLocations({ userId: user.id });
+
+  const location = locations.find(
+    (l) => l.publicId === options.publicLocationId,
+  );
+
+  if (!location) {
+    return error("Location does not exist.");
+  }
+  const title = options.title.trim();
+  const description = options.description.trim();
+
+  const modifiedAt = Date.now();
+
+  await updateSchedule({
+    scheduleId: schedule.id,
+    title,
+    description,
+    locationId: location.id,
+    isDraft: options.isDraft,
+    modifiedAt,
+  });
+
+  return ok(options.publicScheduleId);
+}
+
+export async function remove(
+  listOneUser: (options: {
+    publicUserId: string;
+  }) => Promise<entities.User | null>,
+  listSchedules: (options: { userId: number }) => Promise<entities.Schedule[]>,
+  removeSchedule: (options: {
+    scheduleId: number;
+    removedAt: number;
+  }) => Promise<string>,
+  options: {
+    publicUserId: string;
+    publicScheduleId: string;
+  },
+): Promise<Result<string, string>> {
+  const user = await listOneUser({
+    publicUserId: options.publicUserId,
+  });
+
+  if (!user) {
+    return error("User does not exist.");
+  }
+
+  const schedules = await listSchedules({
+    userId: user.id,
+  });
+
+  const schedule = schedules.find(
+    (s) => s.publicId === options.publicScheduleId,
+  );
+
+  if (!schedule) {
+    return error("Schedule does not exist.");
+  }
+
+  const removedAt = Date.now();
+
+  await removeSchedule({
+    scheduleId: schedule.id,
+    removedAt,
+  });
+
+  return ok(options.publicScheduleId);
+}
+
 export async function list(
   listOneUser: (options: {
     publicUserId: string;
@@ -138,4 +252,36 @@ export async function list(
   });
 
   return ok(schedules);
+}
+
+export async function listOne(
+  listOneUser: (options: {
+    publicUserId: string;
+  }) => Promise<entities.User | null>,
+  listSchedules: (options: { userId: number }) => Promise<entities.Schedule[]>,
+  // options
+  options: { publicUserId: string; publicScheduleId: string },
+  // options
+): Promise<Result<entities.Schedule, string>> {
+  const user = await listOneUser({
+    publicUserId: options.publicUserId,
+  });
+
+  if (!user) {
+    return error("User does not exist.");
+  }
+
+  const schedules = await listSchedules({
+    userId: user.id,
+  });
+
+  const schedule = schedules.find(
+    (s) => s.publicId === options.publicScheduleId,
+  );
+
+  if (!schedule) {
+    return error("Schedule does not exist.");
+  }
+
+  return ok(schedule);
 }

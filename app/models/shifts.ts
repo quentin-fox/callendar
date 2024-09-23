@@ -261,3 +261,21 @@ WHERE
 
   return results.map(toEntity);
 }
+
+export async function remove(
+  db: D1Database,
+  options: { shiftId: number; removedAt: number },
+): Promise<void> {
+  const query = `
+UPDATE shifts
+SET removed_at = $2
+WHERE id = $1;
+`;
+
+  const parameters = [options.shiftId, options.removedAt];
+
+  await db
+    .prepare(query)
+    .bind(...parameters)
+    .run();
+}
