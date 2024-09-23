@@ -196,7 +196,11 @@ export async function remove(
   removeSchedule: (options: {
     scheduleId: number;
     removedAt: number;
-  }) => Promise<string>,
+  }) => Promise<void>,
+  removeShiftsBySchedule: (options: {
+    scheduleId: number;
+    removedAt: number;
+  }) => Promise<void>,
   options: {
     publicUserId: string;
     publicScheduleId: string;
@@ -225,6 +229,11 @@ export async function remove(
   const removedAt = Date.now();
 
   await removeSchedule({
+    scheduleId: schedule.id,
+    removedAt,
+  });
+
+  await removeShiftsBySchedule({
     scheduleId: schedule.id,
     removedAt,
   });

@@ -19,6 +19,15 @@ import TableEmptyCard from "@/components/TableEmptyCard";
 import { Button } from "@/components/ui/button";
 import { useOutletUserContext } from "@/context";
 
+import { DotsHorizontalIcon } from "@radix-ui/react-icons";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+
 export const handle = {
   breadcrumb: () => {
     return {
@@ -104,6 +113,7 @@ export default function Page() {
                 <TableHead>First Shift</TableHead>
                 <TableHead>Last Shift</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead />
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -117,6 +127,26 @@ export default function Page() {
                   <TableCell>{schedule.lastShiftStart}</TableCell>
                   <TableCell>
                     {schedule.isDraft ? "Draft" : "Finalized"}
+                  </TableCell>
+                  <TableCell>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="outline" size="icon">
+                          <DotsHorizontalIcon />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent>
+                        <Link to={schedule.publicId + "/edit"}>
+                          <DropdownMenuItem>Edit</DropdownMenuItem>
+                        </Link>
+                        <DropdownMenuSeparator />
+                        <Link to={schedule.publicId + "/remove"}>
+                          <DropdownMenuItem className="text-destructive">
+                            Remove
+                          </DropdownMenuItem>
+                        </Link>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </TableCell>
                 </TableRow>
               ))}

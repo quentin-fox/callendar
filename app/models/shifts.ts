@@ -279,3 +279,21 @@ WHERE id = $1;
     .bind(...parameters)
     .run();
 }
+
+export async function removeBySchedule(
+  db: D1Database,
+  options: { scheduleId: number; removedAt: number },
+): Promise<void> {
+  const query = `
+UPDATE shifts
+SET removed_at = $2
+WHERE removed_at IS NULL AND schedule_id = $1;
+`;
+
+  const parameters = [options.scheduleId, options.removedAt];
+
+  await db
+    .prepare(query)
+    .bind(...parameters)
+    .run();
+}

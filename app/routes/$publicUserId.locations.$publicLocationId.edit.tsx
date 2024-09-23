@@ -24,15 +24,6 @@ import {
 } from "@/components/ui/alert-dialog";
 import ErrorAlert from "@/components/ErrorAlert";
 
-export const handle = {
-  breadcrumb: () => {
-    return {
-      title: "Edit Location",
-      to: "/locations/edit",
-    };
-  },
-};
-
 export const loader = async ({ params, context }: LoaderFunctionArgs) => {
   const publicUserId = params.publicUserId;
   invariant(publicUserId);

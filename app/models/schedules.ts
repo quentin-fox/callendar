@@ -229,7 +229,7 @@ UPDATE schedules
 SET
   title = $1,
   description = $2,
-  locationId = $3,
+  location_id = $3,
   is_draft = $4,
   modified_at = $5
 WHERE
