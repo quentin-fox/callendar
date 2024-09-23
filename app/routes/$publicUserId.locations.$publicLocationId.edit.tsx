@@ -8,6 +8,8 @@ import invariant from "tiny-invariant";
 
 import * as models from "@/models";
 import * as services from "@/services";
+import * as middleware from "@/middleware/index.server";
+
 import { isError } from "@/helpers/result";
 import { Form, Link, useActionData, useLoaderData } from "@remix-run/react";
 import { Label } from "@/components/ui/label";
@@ -25,25 +27,21 @@ import {
 import ErrorAlert from "@/components/ErrorAlert";
 
 export const loader = async ({ params, context }: LoaderFunctionArgs) => {
-  const publicUserId = params.publicUserId;
-  invariant(publicUserId);
+  const user = await middleware.user.middleware({
+    params,
+    context,
+  });
 
   const publicLocationId = params.publicLocationId;
   invariant(publicLocationId);
 
   const { DB } = context.cloudflare.env;
 
-  const listOneUser = models.users.listOne.bind(null, DB);
   const listOneLocation = models.locations.listOne.bind(null, DB);
 
-  const result = await services.locations.listOne(
-    listOneUser,
-    listOneLocation,
-    {
-      publicUserId,
-      publicLocationId,
-    },
-  );
+  const result = await services.locations.listOne(listOneLocation, user, {
+    publicLocationId,
+  });
 
   if (isError(result)) {
     throw new Error(result.error);
@@ -59,8 +57,10 @@ export const action = async ({
   request,
   context,
 }: ActionFunctionArgs) => {
-  const publicUserId = params.publicUserId;
-  invariant(publicUserId);
+  const user = await middleware.user.middleware({
+    params,
+    context,
+  });
 
   const publicLocationId = params.publicLocationId;
   invariant(publicLocationId);
@@ -73,16 +73,14 @@ export const action = async ({
 
   const { DB } = context.cloudflare.env;
 
-  const listOneUser = models.users.listOne.bind(null, DB);
   const listLocations = models.locations.list.bind(null, DB);
   const updateLocation = models.locations.update.bind(null, DB);
 
   const result = await services.locations.update(
-    listOneUser,
     listLocations,
     updateLocation,
+    user,
     {
-      publicUserId,
       publicLocationId,
       title,
     },
@@ -92,7 +90,7 @@ export const action = async ({
     return json({ error: result.error }, { status: 400 });
   }
 
-  return redirect("/" + publicUserId + "/locations");
+  return redirect("/" + user.publicId + "/locations");
 };
 
 export default function Page() {

@@ -3,6 +3,8 @@ import invariant from "tiny-invariant";
 
 import * as models from "@/models";
 import * as services from "@/services";
+import * as middleware from "@/middleware/index.server";
+
 import { isError } from "@/helpers/result";
 import { Form, Link, useActionData } from "@remix-run/react";
 import { Label } from "@/components/ui/label";
@@ -24,8 +26,10 @@ export const action = async ({
   request,
   context,
 }: ActionFunctionArgs) => {
-  const publicUserId = params.publicUserId;
-  invariant(publicUserId);
+  const user = await middleware.user.middleware({
+    params,
+    context,
+  });
 
   const formData = await request.formData();
 
@@ -35,16 +39,14 @@ export const action = async ({
 
   const { DB } = context.cloudflare.env;
 
-  const listOneUser = models.users.listOne.bind(null, DB);
   const listLocations = models.locations.list.bind(null, DB);
   const insertLocation = models.locations.insert.bind(null, DB);
 
   const result = await services.locations.insert(
-    listOneUser,
     listLocations,
     insertLocation,
+    user,
     {
-      publicUserId,
       title,
     },
   );
@@ -53,7 +55,7 @@ export const action = async ({
     return json({ error: result.error }, { status: 400 });
   }
 
-  return redirect("/" + publicUserId + "/locations");
+  return redirect("/" + user.publicId + "/locations");
 };
 
 export default function Page() {

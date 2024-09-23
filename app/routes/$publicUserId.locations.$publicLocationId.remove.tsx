@@ -5,6 +5,9 @@ import invariant from "tiny-invariant";
 
 import * as models from "@/models";
 import * as services from "@/services";
+
+import * as middleware from "@/middleware/index.server";
+
 import { isError } from "@/helpers/result";
 
 import {
@@ -20,24 +23,24 @@ import { Button } from "@/components/ui/button";
 import ErrorAlert from "@/components/ErrorAlert";
 
 export const action = async ({ params, context }: ActionFunctionArgs) => {
-  const publicUserId = params.publicUserId;
-  invariant(publicUserId);
+  const user = await middleware.user.middleware({
+    params,
+    context,
+  });
 
   const publicLocationId = params.publicLocationId;
   invariant(publicLocationId);
 
   const { DB } = context.cloudflare.env;
 
-  const listOneUser = models.users.listOne.bind(null, DB);
   const listOneLocation = models.locations.listOne.bind(null, DB);
   const removeLocation = models.locations.remove.bind(null, DB);
 
   const result = await services.locations.remove(
-    listOneUser,
     listOneLocation,
     removeLocation,
+    user,
     {
-      publicUserId,
       publicLocationId,
     },
   );
@@ -46,7 +49,7 @@ export const action = async ({ params, context }: ActionFunctionArgs) => {
     return json({ error: result.error });
   }
 
-  return redirect("/" + publicUserId + "/locations");
+  return redirect("/" + user.publicId + "/locations");
 };
 
 export default function Page() {

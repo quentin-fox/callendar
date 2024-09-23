@@ -5,6 +5,7 @@ import { isError } from "@/helpers/result";
 import * as models from "@/models";
 import * as services from "@/services";
 import * as dtos from "@/dtos";
+import * as middleware from "@/middleware/index.server";
 
 import {
   ActionFunctionArgs,
@@ -14,7 +15,6 @@ import {
 } from "@remix-run/server-runtime";
 
 import invariant from "tiny-invariant";
-import { validate } from "uuid";
 import {
   Form,
   useLoaderData,
@@ -72,22 +72,13 @@ export const handle = {
 };
 
 export const loader = async ({ context, params }: LoaderFunctionArgs) => {
+  const user = await middleware.user.middleware({ params, context });
+
   const { DB } = context.cloudflare.env;
 
-  const listOneUser = models.users.listOne.bind(null, DB);
   const listLocations = models.locations.list.bind(null, DB);
 
-  const publicUserId = params.publicUserId;
-
-  invariant(publicUserId, "publicUserId not found");
-
-  if (!validate(publicUserId)) {
-    throw new Error("publicUserID must be a valid UUID");
-  }
-
-  const result = await services.locations.list(listOneUser, listLocations, {
-    publicUserId,
-  });
+  const result = await services.locations.list(listLocations, user);
 
   if (isError(result)) {
     throw new Error(result.error);
@@ -109,20 +100,13 @@ export const action = async ({
   request,
   params,
 }: ActionFunctionArgs) => {
+  const user = await middleware.user.middleware({ params, context });
+
   const { DB } = context.cloudflare.env;
 
-  const listOneUser = models.users.listOne.bind(null, DB);
   const listLocations = models.locations.list.bind(null, DB);
   const insertSchedule = models.schedules.insert.bind(null, DB);
   const insertManyShifts = models.shifts.insertMany.bind(null, DB);
-
-  const publicUserId = params.publicUserId;
-
-  invariant(publicUserId, "publicUserId not found");
-
-  if (!validate(publicUserId)) {
-    throw new Error("publicUserID must be a valid UUID");
-  }
 
   const formData = await request.formData();
 
@@ -186,13 +170,12 @@ export const action = async ({
   }
 
   const result = await services.schedules.insert(
-    listOneUser,
     listLocations,
     insertSchedule,
     insertManyShifts,
+    user,
     {
       publicLocationId,
-      publicUserId,
       title,
       description,
       isDraft,
@@ -205,7 +188,7 @@ export const action = async ({
   }
 
   // TODO redirect to the single schedule page
-  return redirect("/" + publicUserId + "/schedules");
+  return redirect("/" + user.publicId + "/schedules");
 };
 
 export default function Page() {

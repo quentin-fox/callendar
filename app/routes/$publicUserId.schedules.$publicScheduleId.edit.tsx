@@ -9,6 +9,7 @@ import invariant from "tiny-invariant";
 import * as models from "@/models";
 import * as services from "@/services";
 import * as dtos from "@/dtos";
+import * as middleware from "@/middleware/index.server";
 
 import { isError } from "@/helpers/result";
 import { Form, Link, useActionData, useLoaderData } from "@remix-run/react";
@@ -36,30 +37,21 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
 
 export const loader = async ({ params, context }: LoaderFunctionArgs) => {
-  const publicUserId = params.publicUserId;
-  invariant(publicUserId);
+  const user = await middleware.user.middleware({ params, context });
 
   const publicScheduleId = params.publicScheduleId;
   invariant(publicScheduleId);
 
   const { DB } = context.cloudflare.env;
 
-  const listOneUser = models.users.listOne.bind(null, DB);
   const listSchedules = models.schedules.list.bind(null, DB);
   const listLocations = models.locations.list.bind(null, DB);
 
-  const schedulePromise = services.schedules.listOne(
-    listOneUser,
-    listSchedules,
-    {
-      publicUserId,
-      publicScheduleId,
-    },
-  );
-
-  const locationsPromise = services.locations.list(listOneUser, listLocations, {
-    publicUserId,
+  const schedulePromise = services.schedules.listOne(listSchedules, user, {
+    publicScheduleId,
   });
+
+  const locationsPromise = services.locations.list(listLocations, user);
 
   const [scheduleResult, locationsResult] = await Promise.all([
     schedulePromise,
@@ -92,8 +84,7 @@ export const action = async ({
   request,
   context,
 }: ActionFunctionArgs) => {
-  const publicUserId = params.publicUserId;
-  invariant(publicUserId);
+  const user = await middleware.user.middleware({ params, context });
 
   const publicScheduleId = params.publicScheduleId;
   invariant(publicScheduleId);
@@ -114,18 +105,16 @@ export const action = async ({
 
   const { DB } = context.cloudflare.env;
 
-  const listOneUser = models.users.listOne.bind(null, DB);
   const listLocations = models.locations.list.bind(null, DB);
   const listSchedules = models.schedules.list.bind(null, DB);
   const updateSchedule = models.schedules.update.bind(null, DB);
 
   const result = await services.schedules.update(
-    listOneUser,
     listLocations,
     listSchedules,
     updateSchedule,
+    user,
     {
-      publicUserId,
       publicScheduleId,
       title,
       description,
@@ -138,7 +127,7 @@ export const action = async ({
     return json({ error: result.error }, { status: 400 });
   }
 
-  return redirect("/" + publicUserId + "/schedules");
+  return redirect("/" + user.publicId + "/schedules");
 };
 
 export default function Page() {

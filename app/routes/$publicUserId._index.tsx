@@ -3,8 +3,7 @@ import { isError } from "@/helpers/result";
 import * as models from "@/models";
 import * as services from "@/services";
 
-import invariant from "tiny-invariant";
-import { validate } from "uuid";
+import * as middleware from "@/middleware/index.server";
 
 import {
   Card,
@@ -27,6 +26,7 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart";
 import { Bar, BarChart, CartesianGrid, XAxis } from "recharts";
+
 import { json, LoaderFunctionArgs } from "@remix-run/server-runtime";
 import { useLoaderData } from "@remix-run/react";
 
@@ -44,24 +44,11 @@ const chartConfig = {
 export const loader = async ({ context, params }: LoaderFunctionArgs) => {
   const { DB } = context.cloudflare.env;
 
-  const listOneUser = models.users.listOne.bind(null, DB);
+  const user = await middleware.user.middleware({ context, params });
+
   const listShiftsByUser = models.shifts.listByUser.bind(null, DB);
 
-  const publicUserId = params.publicUserId;
-
-  invariant(publicUserId, "publicUserId not found");
-
-  if (!validate(publicUserId)) {
-    throw new Error("publicUserID must be a valid UUID");
-  }
-
-  const result = await services.shifts.listByUser(
-    listOneUser,
-    listShiftsByUser,
-    {
-      publicUserId,
-    },
-  );
+  const result = await services.shifts.listByUser(listShiftsByUser, user);
 
   if (isError(result)) {
     throw new Error(result.error);

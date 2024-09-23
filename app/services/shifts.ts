@@ -3,20 +3,9 @@ import * as entities from "@/entities";
 import { error, ok, Result } from "@/helpers/result";
 
 export async function listByUser(
-  listOneUser: (options: {
-    publicUserId: string;
-  }) => Promise<entities.User | null>,
   listShiftsByUser: (options: { userId: number }) => Promise<entities.Shift[]>,
-  options: { publicUserId: string },
+  user: entities.User,
 ): Promise<Result<entities.Shift[], string>> {
-  const user = await listOneUser({
-    publicUserId: options.publicUserId,
-  });
-
-  if (!user) {
-    return error("User does not exist.");
-  }
-
   const shifts = await listShiftsByUser({
     userId: user.id,
   });
@@ -25,23 +14,13 @@ export async function listByUser(
 }
 
 export async function listBySchedule(
-  listOneUser: (options: {
-    publicUserId: string;
-  }) => Promise<entities.User | null>,
   listSchedules: (options: { userId: number }) => Promise<entities.Schedule[]>,
   listShiftsBySchedule: (options: {
     scheduleId: number;
   }) => Promise<entities.Shift[]>,
-  options: { publicUserId: string; publicScheduleId: string },
+  user: entities.User,
+  options: { publicScheduleId: string },
 ): Promise<Result<entities.Shift[], string>> {
-  const user = await listOneUser({
-    publicUserId: options.publicUserId,
-  });
-
-  if (!user) {
-    return error("User does not exist.");
-  }
-
   const schedules = await listSchedules({
     userId: user.id,
   });
@@ -62,27 +41,16 @@ export async function listBySchedule(
 }
 
 export async function remove(
-  listOneUser: (options: {
-    publicUserId: string;
-  }) => Promise<entities.User | null>,
   listShiftsByUser: (options: { userId: number }) => Promise<entities.Shift[]>,
   removeShift: (options: {
     shiftId: number;
     removedAt: number;
   }) => Promise<void>,
+  user: entities.User,
   options: {
-    publicUserId: string;
     publicShiftId: string;
   },
 ): Promise<Result<string, string>> {
-  const user = await listOneUser({
-    publicUserId: options.publicUserId,
-  });
-
-  if (!user) {
-    return error("User does not exist.");
-  }
-
   const shifts = await listShiftsByUser({
     userId: user.id,
   });

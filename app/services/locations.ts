@@ -4,9 +4,6 @@ import { slugify } from "@/helpers/url";
 import { nanoid } from "nanoid";
 
 export async function insert(
-  listOneUser: (options: {
-    publicUserId: string;
-  }) => Promise<entities.User | null>,
   listLocations: (options: { userId: number }) => Promise<entities.Location[]>,
   insertLocation: (options: {
     userId: number;
@@ -14,19 +11,11 @@ export async function insert(
     title: string;
     createdAt: number;
   }) => Promise<number>,
+  user: entities.User,
   options: {
-    publicUserId: string;
     title: string;
   },
 ): Promise<Result<string, string>> {
-  const user = await listOneUser({
-    publicUserId: options.publicUserId,
-  });
-
-  if (!user) {
-    return error("User does not exist.");
-  }
-
   const title = options.title.trim();
 
   const locations = await listLocations({ userId: user.id });
@@ -52,28 +41,17 @@ export async function insert(
 }
 
 export async function update(
-  listOneUser: (options: {
-    publicUserId: string;
-  }) => Promise<entities.User | null>,
   listLocations: (options: { userId: number }) => Promise<entities.Location[]>,
   updateLocation: (options: {
     locationId: number;
     title: string;
   }) => Promise<number>,
+  user: entities.User,
   options: {
     publicLocationId: string;
-    publicUserId: string;
     title: string;
   },
 ): Promise<Result<string, string>> {
-  const user = await listOneUser({
-    publicUserId: options.publicUserId,
-  });
-
-  if (!user) {
-    return error("User does not exist.");
-  }
-
   const title = options.title.trim();
 
   const locations = await listLocations({ userId: user.id });
@@ -105,20 +83,9 @@ export async function update(
 }
 
 export async function list(
-  listOneUser: (options: {
-    publicUserId: string;
-  }) => Promise<entities.User | null>,
   listLocations: (options: { userId: number }) => Promise<entities.Location[]>,
-  options: { publicUserId: string },
+  user: entities.User,
 ): Promise<Result<entities.Location[], string>> {
-  const user = await listOneUser({
-    publicUserId: options.publicUserId,
-  });
-
-  if (!user) {
-    return error("User does not exist.");
-  }
-
   const locations = await listLocations({
     userId: user.id,
   });
@@ -127,22 +94,12 @@ export async function list(
 }
 
 export async function listOne(
-  listOneUser: (options: {
-    publicUserId: string;
-  }) => Promise<entities.User | null>,
   listOneLocation: (options: {
     publicLocationId: string;
   }) => Promise<entities.Location | null>,
-  options: { publicUserId: string; publicLocationId: string },
+  user: entities.User,
+  options: { publicLocationId: string },
 ): Promise<Result<entities.Location, string>> {
-  const user = await listOneUser({
-    publicUserId: options.publicUserId,
-  });
-
-  if (!user) {
-    return error("User does not exist.");
-  }
-
   const location = await listOneLocation({
     publicLocationId: options.publicLocationId,
   });
@@ -159,9 +116,6 @@ export async function listOne(
 }
 
 export async function remove(
-  listOneUser: (options: {
-    publicUserId: string;
-  }) => Promise<entities.User | null>,
   listOneLocation: (options: {
     publicLocationId: string;
   }) => Promise<entities.Location | null>,
@@ -169,19 +123,11 @@ export async function remove(
     locationId: number;
     removedAt: number;
   }) => Promise<number>,
+  user: entities.User,
   options: {
     publicLocationId: string;
-    publicUserId: string;
   },
 ): Promise<Result<void, string>> {
-  const user = await listOneUser({
-    publicUserId: options.publicUserId,
-  });
-
-  if (!user) {
-    return error("User does not exist.");
-  }
-
   const location = await listOneLocation({
     publicLocationId: options.publicLocationId,
   });

@@ -5,6 +5,8 @@ import invariant from "tiny-invariant";
 
 import * as models from "@/models";
 import * as services from "@/services";
+import * as middleware from "@/middleware/index.server";
+
 import { isError } from "@/helpers/result";
 
 import {
@@ -20,26 +22,23 @@ import { Button } from "@/components/ui/button";
 import ErrorAlert from "@/components/ErrorAlert";
 
 export const action = async ({ params, context }: ActionFunctionArgs) => {
-  const publicUserId = params.publicUserId;
-  invariant(publicUserId);
+  const user = await middleware.user.middleware({ params, context });
 
   const publicScheduleId = params.publicScheduleId;
   invariant(publicScheduleId);
 
   const { DB } = context.cloudflare.env;
 
-  const listOneUser = models.users.listOne.bind(null, DB);
   const listSchedules = models.schedules.list.bind(null, DB);
   const removeSchedule = models.schedules.remove.bind(null, DB);
   const removeShiftsBySchedule = models.shifts.removeBySchedule.bind(null, DB);
 
   const result = await services.schedules.remove(
-    listOneUser,
     listSchedules,
     removeSchedule,
     removeShiftsBySchedule,
+    user,
     {
-      publicUserId,
       publicScheduleId,
     },
   );
@@ -48,7 +47,7 @@ export const action = async ({ params, context }: ActionFunctionArgs) => {
     return json({ error: result.error });
   }
 
-  return redirect("/" + publicUserId + "/schedules");
+  return redirect("/" + user.publicId + "/schedules");
 };
 
 export default function Page() {
