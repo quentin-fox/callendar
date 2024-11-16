@@ -53,6 +53,7 @@ import { DropdownMenuSeparator } from "@radix-ui/react-dropdown-menu";
 import { Separator } from "@/components/ui/separator";
 import TableEmptyCard from "@/components/TableEmptyCard";
 import { cn } from "@/lib/utils";
+import TableFooterButtons from "@/components/TableFooterButtons";
 
 export const handle = {
   breadcrumb: () => {
@@ -588,7 +589,7 @@ export default function Page() {
                   })}
                 </TableBody>
               </Table>
-              <div className="m-8 flex flex-row justify-center gap-4">
+              <TableFooterButtons>
                 <Button
                   type="button"
                   variant={"default"}
@@ -603,7 +604,7 @@ export default function Page() {
                 >
                   Add Timed Shift
                 </Button>
-              </div>
+              </TableFooterButtons>
             </>
           )}
         </div>

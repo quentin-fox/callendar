@@ -30,6 +30,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 import { DotsHorizontalIcon } from "@radix-ui/react-icons";
+import TableFooterButtons from "@/components/TableFooterButtons";
 
 export const handle = {
   breadcrumb: () => {
@@ -127,11 +128,13 @@ export default function Page() {
               ))}
             </TableBody>
           </Table>
-          <Link className="m-8" to="add">
-            <Button type="button" variant={"default"}>
-              Add a Location
-            </Button>
-          </Link>
+          <TableFooterButtons>
+            <Link to="add">
+              <Button type="button" variant={"default"}>
+                Add a Location
+              </Button>
+            </Link>
+          </TableFooterButtons>
         </>
       )}
     </div>

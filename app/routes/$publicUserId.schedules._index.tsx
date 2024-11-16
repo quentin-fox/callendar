@@ -29,6 +29,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
+import TableFooterButtons from "@/components/TableFooterButtons";
+
 export const handle = {
   breadcrumb: () => {
     return {
@@ -151,11 +153,18 @@ export default function Page() {
               ))}
             </TableBody>
           </Table>
-          <Link className="m-8" to="../uploads/add" relative="path">
-            <Button type="button" variant={"default"}>
-              Upload a Schedule
-            </Button>
-          </Link>
+          <TableFooterButtons>
+            <Link to="../uploads/add" relative="path">
+              <Button type="button" variant={"default"}>
+                Upload a Schedule
+              </Button>
+            </Link>
+            <Link to="add" relative="path">
+              <Button type="button" variant={"default"}>
+                Add Blank Schedule
+              </Button>
+            </Link>
+          </TableFooterButtons>
         </>
       )}
     </div>
