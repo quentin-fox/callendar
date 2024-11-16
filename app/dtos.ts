@@ -1,6 +1,7 @@
 export type User = {
   publicId: string;
   firstName: string;
+  timeZone: string;
 };
 
 export type Location = {

@@ -11,6 +11,7 @@ export const loader = async (args: LoaderFunctionArgs) => {
     user: {
       publicId: user.publicId,
       firstName: user.firstName,
+      timeZone: user.timeZone,
     },
   };
 
