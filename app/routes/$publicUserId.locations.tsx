@@ -30,6 +30,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 import { DotsHorizontalIcon } from "@radix-ui/react-icons";
+import { format } from "date-fns";
 import TableFooterButtons from "@/components/TableFooterButtons";
 
 export const handle = {
@@ -103,7 +104,7 @@ export default function Page() {
                 <TableRow key={location.publicId}>
                   <TableCell className="w-64">{location.title}</TableCell>
                   <TableCell>{location.publicId}</TableCell>
-                  <TableCell>{location.createdAt}</TableCell>
+                  <TableCell>{format(location.createdAt, "PPp")}</TableCell>
                   <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>

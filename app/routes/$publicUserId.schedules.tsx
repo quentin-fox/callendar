@@ -28,6 +28,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { format, isSameDay, isSameMonth, isSameYear } from "date-fns";
+import { toZonedTime } from "date-fns-tz";
 
 import TableFooterButtons from "@/components/TableFooterButtons";
 
@@ -94,7 +96,7 @@ export default function Page() {
                 Upload a Schedule
               </Button>
             </Link>
-            <Link to="add" relative="path">
+            <Link to="../add-schedule" relative="path">
               <Button type="button" variant={"default"}>
                 Add Blank Schedule
               </Button>
@@ -110,9 +112,7 @@ export default function Page() {
                 <TableHead>Title</TableHead>
                 <TableHead>Created</TableHead>
                 <TableHead>Location</TableHead>
-                <TableHead># Shifts</TableHead>
-                <TableHead>First Shift</TableHead>
-                <TableHead>Last Shift</TableHead>
+                <TableHead>Summary</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead />
               </TableRow>
@@ -121,11 +121,9 @@ export default function Page() {
               {schedules.map((schedule) => (
                 <TableRow key={schedule.publicId}>
                   <TableCell>{schedule.title}</TableCell>
-                  <TableCell>{schedule.createdAt}</TableCell>
+                  <TableCell>{format(schedule.createdAt, "PPp")}</TableCell>
                   <TableCell>{schedule.location.title}</TableCell>
-                  <TableCell>{schedule.numShifts}</TableCell>
-                  <TableCell>{schedule.firstShiftStart}</TableCell>
-                  <TableCell>{schedule.lastShiftStart}</TableCell>
+                  <TableCell>{buildSummary(schedule, user.timeZone)}</TableCell>
                   <TableCell>
                     {schedule.isDraft ? "Draft" : "Finalized"}
                   </TableCell>
@@ -159,7 +157,7 @@ export default function Page() {
                 Upload a Schedule
               </Button>
             </Link>
-            <Link to="add" relative="path">
+            <Link to="../add-schedule" relative="path">
               <Button type="button" variant={"default"}>
                 Add Blank Schedule
               </Button>
@@ -169,4 +167,67 @@ export default function Page() {
       )}
     </div>
   );
+}
+
+function buildSummary(schedule: dtos.Schedule, timeZone: string): string {
+  if (
+    schedule.numShifts === 0 ||
+    !schedule.firstShiftStart ||
+    !schedule.lastShiftStart
+  ) {
+    return "0 shifts";
+  }
+
+  const zonedFirstShiftStart = toZonedTime(schedule.firstShiftStart, timeZone);
+  const zonedLastShiftStart = toZonedTime(schedule.lastShiftStart, timeZone);
+
+  if (schedule.numShifts === 1) {
+    return "1 shift on " + format(zonedFirstShiftStart, "PP");
+  }
+
+  if (isSameDay(zonedFirstShiftStart, zonedLastShiftStart)) {
+    return schedule.numShifts + " on " + format(zonedFirstShiftStart, "PP");
+  }
+
+  const base = schedule.numShifts + " shifts from ";
+
+  const formatter = buildFormatter(
+    base,
+    zonedFirstShiftStart,
+    zonedLastShiftStart,
+  );
+
+  if (isSameMonth(zonedFirstShiftStart, zonedLastShiftStart)) {
+    const firstFormat = "LLL d"; // Nov 15
+    const lastFormat = "d yyyy";
+
+    return formatter(firstFormat, lastFormat);
+  }
+
+  if (isSameYear(zonedFirstShiftStart, zonedLastShiftStart)) {
+    const firstFormat = "LLL d";
+    const lastFormat = "LLL d yyyy";
+
+    return formatter(firstFormat, lastFormat);
+  }
+
+  const firstFormat = "LLL d yyyy";
+  const lastFormat = "LLL d yyyy";
+
+  return formatter(firstFormat, lastFormat);
+}
+
+function buildFormatter(
+  base: string,
+  zonedFirstShiftStart: Date,
+  zonedLastShiftStart: Date,
+) {
+  return (firstFormat: string, lastFormat: string) => {
+    return (
+      base +
+      format(zonedFirstShiftStart, firstFormat) +
+      " - " +
+      format(zonedLastShiftStart, lastFormat)
+    );
+  };
 }
