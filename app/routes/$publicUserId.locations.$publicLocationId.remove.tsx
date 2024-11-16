@@ -11,7 +11,6 @@ import * as middleware from "@/middleware/index.server";
 import { isError } from "@/helpers/result";
 
 import {
-  AlertDialog,
   AlertDialogContent,
   AlertDialogHeader,
   AlertDialogTitle,
@@ -21,6 +20,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import ErrorAlert from "@/components/ErrorAlert";
+import RouteAlertDialog from "@/components/RouteAlertDialog";
 
 export const action = async ({ params, context }: ActionFunctionArgs) => {
   const user = await middleware.user.middleware({
@@ -56,7 +56,7 @@ export default function Page() {
   const actionData = useActionData<typeof action>();
 
   return (
-    <AlertDialog defaultOpen>
+    <RouteAlertDialog onClosePath="../../">
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>Remove Location</AlertDialogTitle>
@@ -77,6 +77,6 @@ export default function Page() {
         </Form>
         {actionData?.error && <ErrorAlert error={actionData.error} />}
       </AlertDialogContent>
-    </AlertDialog>
+    </RouteAlertDialog>
   );
 }

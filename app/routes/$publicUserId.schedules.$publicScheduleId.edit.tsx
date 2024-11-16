@@ -24,7 +24,6 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 import {
-  AlertDialog,
   AlertDialogContent,
   AlertDialogHeader,
   AlertDialogTitle,
@@ -35,6 +34,7 @@ import {
 import ErrorAlert from "@/components/ErrorAlert";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
+import RouteAlertDialog from "@/components/RouteAlertDialog";
 
 export const loader = async ({ params, context }: LoaderFunctionArgs) => {
   const user = await middleware.user.middleware({ params, context });
@@ -135,7 +135,7 @@ export default function Page() {
   const actionData = useActionData<typeof action>();
 
   return (
-    <AlertDialog defaultOpen>
+    <RouteAlertDialog onClosePath="../../">
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>Edit Schedule</AlertDialogTitle>
@@ -211,6 +211,6 @@ export default function Page() {
         </Form>
         {actionData?.error && <ErrorAlert error={actionData.error} />}
       </AlertDialogContent>
-    </AlertDialog>
+    </RouteAlertDialog>
   );
 }
