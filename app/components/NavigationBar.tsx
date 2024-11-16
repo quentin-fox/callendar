@@ -22,8 +22,8 @@ type Props = {
 
 const pages = [
   {
-    title: "New Upload",
-    to: "uploads/new",
+    title: "Add Upload",
+    to: "uploads/add",
   },
   {
     title: "Schedules",

@@ -19,8 +19,6 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     maxPartSize: 5_000_000,
   });
 
-  await new Promise((resolve) => setTimeout(resolve, 3000));
-
   const formData = await unstable_parseMultipartFormData(
     request,
     uploadHandler,

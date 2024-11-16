@@ -122,6 +122,8 @@ export async function insertMany(
 ): Promise<number[]> {
   const statement = db.prepare(INSERT_QUERY);
 
+  console.log(options);
+
   const batchResults = await db.batch<{ id: number }>(
     options.map((o) => statement.bind(...toParameters(o))),
   );

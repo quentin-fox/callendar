@@ -73,16 +73,18 @@ export default function Page() {
     <div className="flex flex-col items-center">
       <Outlet context={{ user }} />
       {locations.length === 0 && (
-        <TableEmptyCard
-          title="No Locations"
-          description="Add a location to associate a schedule and/or shift with a hospital, clinic, etc."
-        >
-          <Link to="add">
-            <Button type="button" variant={"default"}>
-              Add a Location
-            </Button>
-          </Link>
-        </TableEmptyCard>
+        <TableEmptyCard.Spacing>
+          <TableEmptyCard
+            title="No Locations"
+            description="Add a location to associate a schedule and/or shift with a hospital, clinic, etc."
+          >
+            <Link to="add">
+              <Button type="button" variant={"default"}>
+                Add a Location
+              </Button>
+            </Link>
+          </TableEmptyCard>
+        </TableEmptyCard.Spacing>
       )}
       {locations.length > 0 && (
         <>

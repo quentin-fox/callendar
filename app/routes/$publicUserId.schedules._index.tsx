@@ -82,16 +82,23 @@ export default function Page() {
     <div className="flex flex-col items-center">
       <Outlet context={{ user }} />
       {schedules.length === 0 && (
-        <TableEmptyCard
-          title="No Schedules"
-          description="Upload your first schedule to start tracking your shifts."
-        >
-          <Link to="../uploads/new" relative="path">
-            <Button type="button" variant={"default"}>
-              Upload a Schedule
-            </Button>
-          </Link>
-        </TableEmptyCard>
+        <TableEmptyCard.Spacing>
+          <TableEmptyCard
+            title="No Schedules"
+            description="Upload your first schedule to start tracking your shifts."
+          >
+            <Link to="../uploads/add" relative="path">
+              <Button type="button" variant={"default"}>
+                Upload a Schedule
+              </Button>
+            </Link>
+            <Link to="add" relative="path">
+              <Button type="button" variant={"default"}>
+                Add Blank Schedule
+              </Button>
+            </Link>
+          </TableEmptyCard>
+        </TableEmptyCard.Spacing>
       )}
       {schedules.length > 0 && (
         <>
@@ -144,7 +151,7 @@ export default function Page() {
               ))}
             </TableBody>
           </Table>
-          <Link className="m-8" to="../uploads/new" relative="path">
+          <Link className="m-8" to="../uploads/add" relative="path">
             <Button type="button" variant={"default"}>
               Upload a Schedule
             </Button>

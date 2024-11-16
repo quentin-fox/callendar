@@ -49,6 +49,10 @@ export async function insert(
     )[];
   },
 ): Promise<Result<string, string>> {
+  if (options.shifts.length === 0) {
+    return error("You must provide at least one shift.");
+  }
+
   const locations = await listLocations({ userId: user.id });
 
   const location = locations.find(
