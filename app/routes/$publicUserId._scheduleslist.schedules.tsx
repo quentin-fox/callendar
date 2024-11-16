@@ -96,7 +96,7 @@ export default function Page() {
                 Upload a Schedule
               </Button>
             </Link>
-            <Link to="../add-schedule" relative="path">
+            <Link to="add" relative="path">
               <Button type="button" variant={"default"}>
                 Add Blank Schedule
               </Button>
@@ -157,7 +157,7 @@ export default function Page() {
                 Upload a Schedule
               </Button>
             </Link>
-            <Link to="../add-schedule" relative="path">
+            <Link to="add" relative="path">
               <Button type="button" variant={"default"}>
                 Add Blank Schedule
               </Button>

@@ -59,7 +59,7 @@ export const handle = {
   breadcrumb: () => {
     return {
       title: "Add Schedule",
-      to: "/add-schedule",
+      to: "/schedules/add",
     };
   },
 };

@@ -141,7 +141,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 
   const encoded = Buffer.from(JSON.stringify(shifts)).toString("base64");
 
-  return redirect("../add-schedule" + `?shifts=${encoded}`);
+  return redirect("../schedules/add" + `?shifts=${encoded}`);
 };
 
 export default function Page() {
