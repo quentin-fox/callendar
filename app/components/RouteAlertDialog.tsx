@@ -19,8 +19,9 @@ export default function RouteAlertDialog(props: Props) {
       navigate(props.onClosePath, { relative: "path" });
     }
   };
+
   return (
-    <AlertDialog defaultOpen onOpenChange={onOpenChange}>
+    <AlertDialog onOpenChange={onOpenChange} open>
       {props.children}
     </AlertDialog>
   );
