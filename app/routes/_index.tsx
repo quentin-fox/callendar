@@ -70,7 +70,11 @@ export const action = async ({ request, context }: ActionFunctionArgs) => {
 
   const publicId = result.value;
 
-  return redirect("/" + publicId);
+  const headers = new Headers({
+    "Set-Cookie": await userIdCookie.serialize(publicId),
+  });
+
+  return redirect("/" + publicId, { headers });
 };
 
 export default function Page() {
