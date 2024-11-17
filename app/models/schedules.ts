@@ -12,6 +12,8 @@ type Row = {
   user_id: number;
   is_draft: number;
   num_shifts: number;
+  num_claimed_shifts: number;
+  num_unclaimed_shifts: number;
   first_shift_start: number | null;
   last_shift_start: number | null;
 };
@@ -72,6 +74,8 @@ function toEntity(row: Row): entities.Schedule {
     isDraft: row.is_draft === 1,
     locationId: row.location_id,
     numShifts: row.num_shifts,
+    numClaimedShifts: row.num_claimed_shifts,
+    numUnclaimedShifts: row.num_unclaimed_shifts,
     firstShiftStart:
       row.first_shift_start === null
         ? null
@@ -106,6 +110,22 @@ SELECT
       shifts.schedule_id = schedules.id
       AND shifts.removed_at IS NULL
   ) as "num_shifts",
+  (
+    SELECT COUNT(*)
+    FROM shifts
+    WHERE
+      shifts.schedule_id = schedules.id
+      AND shifts.removed_at IS NULL
+      AND shifts.claimed = 1
+  ) as "num_claimed_shifts",
+  (
+    SELECT COUNT(*)
+    FROM shifts
+    WHERE
+      shifts.schedule_id = schedules.id
+      AND shifts.removed_at IS NULL
+      AND shifts.claimed = 0
+  ) as "num_unclaimed_shifts",
   (
     SELECT MIN(shifts.start)
     FROM shifts
@@ -163,6 +183,22 @@ SELECT
       shifts.schedule_id = schedules.id
       AND shifts.removed_at IS NULL
   ) as "num_shifts",
+  (
+    SELECT COUNT(*)
+    FROM shifts
+    WHERE
+      shifts.schedule_id = schedules.id
+      AND shifts.removed_at IS NULL
+      AND shifts.claimed = 1
+  ) as "num_claimed_shifts",
+  (
+    SELECT COUNT(*)
+    FROM shifts
+    WHERE
+      shifts.schedule_id = schedules.id
+      AND shifts.removed_at IS NULL
+      AND shifts.claimed = 0
+  ) as "num_unclaimed_shifts",
   (
     SELECT MIN(shifts.start)
     FROM shifts

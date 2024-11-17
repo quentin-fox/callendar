@@ -37,6 +37,8 @@ export type Schedule = {
   location: Location | null;
   isDraft: boolean;
   numShifts: number;
+  numClaimedShifts: number;
+  numUnclaimedShifts: number;
   firstShiftStart: string | null;
   lastShiftStart: string | null;
 };
@@ -54,6 +56,8 @@ export function fromScheduleEntity(
     location: location ? fromLocationEntity(location) : null,
     isDraft: schedule.isDraft,
     numShifts: schedule.numShifts,
+    numClaimedShifts: schedule.numClaimedShifts,
+    numUnclaimedShifts: schedule.numUnclaimedShifts,
     firstShiftStart: schedule.firstShiftStart,
     lastShiftStart: schedule.lastShiftStart,
   };
@@ -66,14 +70,18 @@ export type Shift = {
   title: string;
   description: string;
   location: Location | null;
+  schedule: Schedule | null;
   start: string; // ISO
   end: string; // ISO
   isAllDay: boolean;
+  claimed: boolean;
 };
 
 export function fromShiftEntity(
   shift: entities.Shift,
   location: entities.Location | null,
+  schedule: entities.Schedule | null,
+  locationSchedule: entities.Location | null,
 ): Shift {
   return {
     publicId: shift.publicId,
@@ -82,9 +90,11 @@ export function fromShiftEntity(
     title: shift.title,
     description: shift.description,
     location: location ? fromLocationEntity(location) : null,
+    schedule: schedule ? fromScheduleEntity(schedule, locationSchedule) : null,
     start: shift.start,
     end: shift.end,
     isAllDay: shift.isAllDay,
+    claimed: shift.claimed,
   };
 }
 

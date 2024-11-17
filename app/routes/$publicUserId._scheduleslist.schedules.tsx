@@ -97,9 +97,10 @@ export default function Page() {
             <TableHeader>
               <TableRow>
                 <TableHead>Title</TableHead>
-                <TableHead>Created</TableHead>
+                <TableHead>Period</TableHead>
+                <TableHead className="text-center">Claimed</TableHead>
                 <TableHead>Location</TableHead>
-                <TableHead>Summary</TableHead>
+                <TableHead>Created</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead />
               </TableRow>
@@ -108,11 +109,12 @@ export default function Page() {
               {schedules.map((schedule) => (
                 <TableRow key={schedule.publicId}>
                   <TableCell>{schedule.title}</TableCell>
-                  <TableCell>{format(schedule.createdAt, "PPp")}</TableCell>
-                  <TableCell>
-                    {schedule.location?.title ?? "Location Removed"}
+                  <TableCell>{buildPeriod(schedule, user.timeZone)}</TableCell>
+                  <TableCell className="text-center">
+                    {schedule.numClaimedShifts} / {schedule.numShifts}
                   </TableCell>
-                  <TableCell>{buildSummary(schedule, user.timeZone)}</TableCell>
+                  <TableCell>{schedule.location?.title ?? "-"}</TableCell>
+                  <TableCell>{format(schedule.createdAt, "PPp")}</TableCell>
                   <TableCell>
                     {schedule.isDraft ? "Draft" : "Finalized"}
                   </TableCell>
@@ -158,33 +160,23 @@ export default function Page() {
   );
 }
 
-function buildSummary(schedule: dtos.Schedule, timeZone: string): string {
+function buildPeriod(schedule: dtos.Schedule, timeZone: string): string {
   if (
     schedule.numShifts === 0 ||
     !schedule.firstShiftStart ||
     !schedule.lastShiftStart
   ) {
-    return "0 shifts";
+    return "-";
   }
 
   const zonedFirstShiftStart = toZonedTime(schedule.firstShiftStart, timeZone);
   const zonedLastShiftStart = toZonedTime(schedule.lastShiftStart, timeZone);
 
-  if (schedule.numShifts === 1) {
-    return "1 shift on " + format(zonedFirstShiftStart, "PP");
-  }
-
   if (isSameDay(zonedFirstShiftStart, zonedLastShiftStart)) {
-    return schedule.numShifts + " on " + format(zonedFirstShiftStart, "PP");
+    return format(zonedFirstShiftStart, "PP");
   }
 
-  const base = schedule.numShifts + " shifts from ";
-
-  const formatter = buildFormatter(
-    base,
-    zonedFirstShiftStart,
-    zonedLastShiftStart,
-  );
+  const formatter = buildFormatter(zonedFirstShiftStart, zonedLastShiftStart);
 
   if (isSameMonth(zonedFirstShiftStart, zonedLastShiftStart)) {
     const firstFormat = "LLL d"; // Nov 15
@@ -206,14 +198,9 @@ function buildSummary(schedule: dtos.Schedule, timeZone: string): string {
   return formatter(firstFormat, lastFormat);
 }
 
-function buildFormatter(
-  base: string,
-  zonedFirstShiftStart: Date,
-  zonedLastShiftStart: Date,
-) {
+function buildFormatter(zonedFirstShiftStart: Date, zonedLastShiftStart: Date) {
   return (firstFormat: string, lastFormat: string) => {
     return (
-      base +
       format(zonedFirstShiftStart, firstFormat) +
       " - " +
       format(zonedLastShiftStart, lastFormat)

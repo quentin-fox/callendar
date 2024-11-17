@@ -26,6 +26,8 @@ export type Schedule = {
   userId: number;
   isDraft: boolean;
   numShifts: number;
+  numClaimedShifts: number;
+  numUnclaimedShifts: number;
   firstShiftStart: string | null;
   lastShiftStart: string | null;
 };
