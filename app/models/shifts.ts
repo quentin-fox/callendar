@@ -250,7 +250,8 @@ FROM
   shifts JOIN schedules ON shifts.schedule_id = schedules.id
 WHERE
   shifts.removed_at IS NULL
-  AND schedules.user_id = ?;
+  AND schedules.user_id = ?
+ORDER BY shifts.start ASC, shifts.id ASC;
 `;
 
   const parameters = [options.userId];
