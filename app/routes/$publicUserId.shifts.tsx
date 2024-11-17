@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/table";
 import TableEmptyCard from "@/components/TableEmptyCard";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 
 import { useOutletUserContext } from "@/context";
 
@@ -252,7 +253,7 @@ export default function Page() {
                   <TableHead>Summary</TableHead>
                   <TableHead>Schedule</TableHead>
                   <TableHead>Location</TableHead>
-                  <TableHead>Status</TableHead>
+                  <TableHead className="text-center">Status</TableHead>
                   <TableHead />
                 </TableRow>
               </TableHeader>
@@ -275,8 +276,23 @@ export default function Page() {
                     <TableCell>{buildSummary(shift, user.timeZone)}</TableCell>
                     <TableCell>{shift.schedule?.title ?? "-"}</TableCell>
                     <TableCell>{shift.location?.title ?? "-"}</TableCell>
-                    <TableCell>
-                      {shift.claimed ? "Claimed" : "Unclaimed"}
+                    <TableCell className="text-center">
+                      {shift.claimed && (
+                        <Badge
+                          variant="outline"
+                          className="text-chart1 border-chart1 bg-chart1/20"
+                        >
+                          Claimed
+                        </Badge>
+                      )}
+                      {!shift.claimed && (
+                        <Badge
+                          variant="outline"
+                          className="text-chart3 border-chart3 bg-chart3/20"
+                        >
+                          Unclaimed
+                        </Badge>
+                      )}
                     </TableCell>
                     <TableCell>
                       <DropdownMenu>

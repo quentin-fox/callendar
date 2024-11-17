@@ -46,6 +46,14 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        chart1: {
+          DEFAULT: "hsl(var(--chart-1))",
+          foreground: "hsl(var(--chart-1))",
+        },
+        chart3: {
+          DEFAULT: "hsl(var(--chart-3))",
+          foreground: "hsl(var(--chart-3))",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",
