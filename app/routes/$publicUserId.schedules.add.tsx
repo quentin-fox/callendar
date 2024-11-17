@@ -158,8 +158,6 @@ export const action = async ({
       }
   )[] = [];
 
-  console.log(numShifts);
-
   for (let i = 0; i < numShifts; i++) {
     const type = formData.get(`type-${i}`);
 
