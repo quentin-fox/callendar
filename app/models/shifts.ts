@@ -12,7 +12,7 @@ type Row = {
   schedule_id: number;
   start: number;
   end: number;
-  is_all_day: boolean;
+  is_all_day: number;
   claimed: boolean;
 };
 
@@ -122,8 +122,6 @@ export async function insertMany(
 ): Promise<number[]> {
   const statement = db.prepare(INSERT_QUERY);
 
-  console.log(options);
-
   const batchResults = await db.batch<{ id: number }>(
     options.map((o) => statement.bind(...toParameters(o))),
   );
@@ -150,7 +148,7 @@ function toEntity(row: Row): entities.Shift {
     scheduleId: row.schedule_id,
     start: new Date(row.start).toISOString(),
     end: new Date(row.end).toISOString(),
-    isAllDay: row.is_all_day,
+    isAllDay: row.is_all_day === 1,
     claimed: row.claimed,
   };
 }

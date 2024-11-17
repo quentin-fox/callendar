@@ -14,7 +14,7 @@ type Row = {
   location_created_at: number;
   location_user_id: number;
   user_id: number;
-  is_draft: boolean;
+  is_draft: number;
   num_shifts: number;
   first_shift_start: number | null;
   last_shift_start: number | null;
@@ -73,7 +73,7 @@ function toEntity(row: Row): entities.Schedule {
     title: row.title,
     description: row.description,
     userId: row.user_id,
-    isDraft: row.is_draft,
+    isDraft: row.is_draft === 1,
     location: {
       id: row.location_id,
       publicId: row.location_public_id,
