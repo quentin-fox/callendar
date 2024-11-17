@@ -335,6 +335,36 @@ WHERE removed_at IS NULL AND id = $1;
     .run();
 }
 
+export async function markManyClaimed(
+  db: D1Database,
+  options: { shiftIds: number[] },
+): Promise<void> {
+  const query = `
+UPDATE shifts
+SET claimed = TRUE
+WHERE removed_at IS NULL AND id = $1;
+  `;
+
+  const statement = db.prepare(query);
+
+  await db.batch(options.shiftIds.map((shiftId) => statement.bind(shiftId)));
+}
+
+export async function markManyUnclaimed(
+  db: D1Database,
+  options: { shiftIds: number[] },
+): Promise<void> {
+  const query = `
+UPDATE shifts
+SET claimed = TRUE
+WHERE removed_at IS NULL AND id = $1;
+  `;
+
+  const statement = db.prepare(query);
+
+  await db.batch(options.shiftIds.map((shiftId) => statement.bind(shiftId)));
+}
+
 export async function markClaimedBySchedule(
   db: D1Database,
   options: { scheduleId: number },

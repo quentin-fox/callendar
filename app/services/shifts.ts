@@ -117,6 +117,60 @@ export async function markUnclaimed(
   return ok(options.publicShiftId);
 }
 
+export async function markManyClaimed(
+  listShiftsByUser: (options: { userId: number }) => Promise<entities.Shift[]>,
+  markManyShiftsClaimed: (options: { shiftIds: number[] }) => Promise<void>,
+  user: entities.User,
+  options: {
+    publicShiftIds: string[];
+  },
+): Promise<Result<string[], string>> {
+  const shifts = await listShiftsByUser({
+    userId: user.id,
+  });
+
+  const shiftIds = options.publicShiftIds.flatMap((publicShiftId) => {
+    const shift = shifts.find((s) => s.publicId === publicShiftId);
+
+    return shift ? shift.id : [];
+  });
+
+  if (shiftIds.length !== options.publicShiftIds.length) {
+    return error("One or more shifts do not exist.");
+  }
+
+  await markManyShiftsClaimed({ shiftIds });
+
+  return ok(options.publicShiftIds);
+}
+
+export async function markManyUnclaimed(
+  listShiftsByUser: (options: { userId: number }) => Promise<entities.Shift[]>,
+  markManyShiftsUnclaimed: (options: { shiftIds: number[] }) => Promise<void>,
+  user: entities.User,
+  options: {
+    publicShiftIds: string[];
+  },
+): Promise<Result<string[], string>> {
+  const shifts = await listShiftsByUser({
+    userId: user.id,
+  });
+
+  const shiftIds = options.publicShiftIds.flatMap((publicShiftId) => {
+    const shift = shifts.find((s) => s.publicId === publicShiftId);
+
+    return shift ? shift.id : [];
+  });
+
+  if (shiftIds.length !== options.publicShiftIds.length) {
+    return error("One or more shifts do not exist.");
+  }
+
+  await markManyShiftsUnclaimed({ shiftIds });
+
+  return ok(options.publicShiftIds);
+}
+
 export async function markClaimedBySchedule(
   listSchedules: (options: { userId: number }) => Promise<entities.Schedule[]>,
   markShiftClaimedBySchedule: (options: {
