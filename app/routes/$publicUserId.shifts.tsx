@@ -1,3 +1,4 @@
+import React, { useCallback, useState, useRef } from "react";
 import { unwrap } from "@/helpers/result";
 
 import * as models from "@/models";
@@ -31,6 +32,8 @@ import {
 import { DotsHorizontalIcon } from "@radix-ui/react-icons";
 import { differenceInHours, format } from "date-fns";
 import { toZonedTime } from "date-fns-tz";
+import { Checkbox } from "@/components/ui/checkbox";
+import { CheckedState } from "@radix-ui/react-checkbox";
 
 export const handle = {
   breadcrumb: () => {
@@ -79,10 +82,97 @@ export const loader = async ({ context, params }: LoaderFunctionArgs) => {
   return json({ shifts });
 };
 
+function getAllCheckedState(
+  ids: string[],
+  selected: Record<string, boolean>,
+): CheckedState {
+  const numChecked = Object.values(selected).filter(Boolean).length;
+
+  switch (numChecked) {
+    case 0:
+      return false;
+    case ids.length:
+      return true;
+    default:
+      return "indeterminate";
+  }
+}
+
+function useSelection(
+  ids: string[],
+  initialState: Record<string, boolean> = {},
+) {
+  const [selected, setSelected] = useState(initialState);
+
+  const lastSelectedIndexRef = useRef<number>(0); // To track the last selected item
+
+  const onClick = useCallback(
+    (event: React.MouseEvent<HTMLButtonElement, MouseEvent>, index: number) => {
+      const currentChecked = event.currentTarget.value === "on";
+      const checked = !currentChecked;
+
+      if (!event.shiftKey) {
+        lastSelectedIndexRef.current = index;
+        setSelected((prev) => ({ ...prev, [ids[index]]: checked }));
+        return;
+      }
+
+      const startIndex = Math.min(lastSelectedIndexRef.current, index);
+      const endIndex = Math.max(lastSelectedIndexRef.current, index);
+
+      const selectedOverride = ids
+        .slice(startIndex, endIndex + 1)
+        .reduce<
+          Record<string, boolean>
+        >((prev, curr) => ({ ...prev, [curr]: checked }), {});
+
+      lastSelectedIndexRef.current = index;
+
+      setSelected((prev) => ({ ...prev, ...selectedOverride }));
+    },
+    [ids],
+  );
+
+  const onAllCheckedChange = useCallback(
+    (checked: CheckedState) => {
+      if (checked === "indeterminate") {
+        return;
+      }
+
+      if (checked === false) {
+        setSelected({});
+      }
+
+      if (checked === true) {
+        const publicIds = ids.reduce(
+          (prev, curr) => ({
+            ...prev,
+            [curr]: true,
+          }),
+          {},
+        );
+
+        setSelected(publicIds);
+      }
+    },
+    [ids],
+  );
+
+  return [
+    selected,
+    onClick,
+    getAllCheckedState(ids, selected),
+    onAllCheckedChange,
+  ] as const;
+}
+
 export default function Page() {
   const { shifts } = useLoaderData<typeof loader>();
 
   const { user } = useOutletUserContext();
+
+  const [selectedPublicIds, onClick, allCheckedState, onAllCheckedChange] =
+    useSelection(shifts.map((s) => s.publicId));
 
   return (
     <div className="flex flex-col items-center">
@@ -106,6 +196,16 @@ export default function Page() {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead className="w-[40px]">
+                  <div className="flex items-center justify-start">
+                    <Checkbox
+                      id={"selected-all"}
+                      name={"selected-all"}
+                      checked={allCheckedState}
+                      onCheckedChange={onAllCheckedChange}
+                    />
+                  </div>
+                </TableHead>
                 <TableHead>Summary</TableHead>
                 <TableHead>Schedule</TableHead>
                 <TableHead>Location</TableHead>
@@ -114,8 +214,19 @@ export default function Page() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {shifts.map((shift) => (
+              {shifts.map((shift, index) => (
                 <TableRow key={shift.publicId}>
+                  <TableCell className="w-[40px]">
+                    <div className="flex items-center justify-start">
+                      <Checkbox
+                        id={"selected" + shift.publicId}
+                        name={"selected" + shift.publicId}
+                        value={selectedPublicIds[shift.publicId] ? "on" : "off"}
+                        checked={selectedPublicIds[shift.publicId] ?? false}
+                        onClick={(e) => onClick(e, index)}
+                      />
+                    </div>
+                  </TableCell>
                   <TableCell>{buildSummary(shift, user.timeZone)}</TableCell>
                   <TableCell>{shift.schedule?.title ?? "-"}</TableCell>
                   <TableCell>{shift.location?.title ?? "-"}</TableCell>
