@@ -168,7 +168,7 @@ export default function Page() {
               next shift on{" "}
               {format(
                 toZonedTime(stats.nextShiftStart, user.timeZone),
-                "MMM dd",
+                "MMM d",
               )}
             </p>
           )}

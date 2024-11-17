@@ -1,4 +1,4 @@
-import { isError } from "@/helpers/result";
+import { unwrap } from "@/helpers/result";
 
 import * as models from "@/models";
 import * as services from "@/services";
@@ -30,8 +30,9 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 import { DotsHorizontalIcon } from "@radix-ui/react-icons";
-import { format } from "date-fns";
+import { differenceInHours, format } from "date-fns";
 import TableFooterButtons from "@/components/TableFooterButtons";
+import { toZonedTime } from "date-fns-tz";
 
 export const handle = {
   breadcrumb: () => {
@@ -48,27 +49,47 @@ export const loader = async ({ context, params }: LoaderFunctionArgs) => {
   const user = await middleware.user.middleware({ context, params });
 
   const listLocations = models.locations.list.bind(null, DB);
+  const listSchedules = models.schedules.list.bind(null, DB);
+  const listShiftsByUser = models.shifts.listByUser.bind(null, DB);
 
-  const result = await services.locations.list(listLocations, user);
+  const [locationsResult, shiftsResult, schedulesResult] = await Promise.all([
+    services.locations.list(listLocations, user).then(unwrap),
+    services.shifts.listByUser(listShiftsByUser, user).then(unwrap),
+    services.schedules.list(listSchedules, user).then(unwrap),
+  ]);
 
-  if (isError(result)) {
-    throw new Error(result.error);
-  }
+  const shifts: dtos.Shift[] = shiftsResult.map((shift) => {
+    const schedule = schedulesResult.find((s) => s.id === shift.scheduleId);
 
-  const locations: dtos.Location[] = result.value.map(dtos.fromLocationEntity);
+    const scheduleLocation =
+      schedule && schedule.locationId
+        ? locationsResult.find((l) => l.id === schedule.locationId)
+        : null;
 
-  return json({ locations });
+    const location = shift.locationId
+      ? locationsResult.find((l) => l.id === shift.locationId)
+      : null;
+
+    return dtos.fromShiftEntity(
+      shift,
+      location ?? null,
+      schedule ?? null,
+      scheduleLocation ?? null,
+    );
+  });
+
+  return json({ shifts });
 };
 
 export default function Page() {
-  const { locations } = useLoaderData<typeof loader>();
+  const { shifts } = useLoaderData<typeof loader>();
 
   const { user } = useOutletUserContext();
 
   return (
     <div className="flex flex-col items-center">
       <Outlet context={{ user }} />
-      {locations.length === 0 && (
+      {shifts.length === 0 && (
         <TableEmptyCard.Spacing>
           <TableEmptyCard
             title="No Locations"
@@ -82,23 +103,27 @@ export default function Page() {
           </TableEmptyCard>
         </TableEmptyCard.Spacing>
       )}
-      {locations.length > 0 && (
+      {shifts.length > 0 && (
         <>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-64">Title</TableHead>
-                <TableHead>ID</TableHead>
-                <TableHead>Created</TableHead>
+                <TableHead>Summary</TableHead>
+                <TableHead>Schedule</TableHead>
+                <TableHead>Location</TableHead>
+                <TableHead>Status</TableHead>
                 <TableHead />
               </TableRow>
             </TableHeader>
             <TableBody>
-              {locations.map((location) => (
-                <TableRow key={location.publicId}>
-                  <TableCell className="w-64">{location.title}</TableCell>
-                  <TableCell>{location.publicId}</TableCell>
-                  <TableCell>{format(location.createdAt, "PPp")}</TableCell>
+              {shifts.map((shift) => (
+                <TableRow key={shift.publicId}>
+                  <TableCell>{buildSummary(shift, user.timeZone)}</TableCell>
+                  <TableCell>{shift.schedule?.title ?? "-"}</TableCell>
+                  <TableCell>{shift.location?.title ?? "-"}</TableCell>
+                  <TableCell>
+                    {shift.claimed ? "Claimed" : "Unclaimed"}
+                  </TableCell>
                   <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -107,11 +132,11 @@ export default function Page() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent>
-                        <Link to={location.publicId + "/edit"}>
+                        <Link to={shift.publicId + "/edit"}>
                           <DropdownMenuItem>Edit</DropdownMenuItem>
                         </Link>
                         <DropdownMenuSeparator />
-                        <Link to={location.publicId + "/remove"}>
+                        <Link to={shift.publicId + "/remove"}>
                           <DropdownMenuItem className="text-destructive">
                             Remove
                           </DropdownMenuItem>
@@ -133,5 +158,32 @@ export default function Page() {
         </>
       )}
     </div>
+  );
+}
+
+function buildSummary(shift: dtos.Shift, timeZone: string): string {
+  // 24h shift on Nov 12, 2024
+  // 6pm - 10pm on Nov 5, 2024
+  // 6pm - 10pm on Nov 5 - Nov 8, 2024
+
+  const zonedStart = toZonedTime(shift.start, timeZone);
+
+  const zonedEnd = toZonedTime(shift.end, timeZone);
+
+  if (shift.isAllDay) {
+    return format(zonedStart, "MMM d, yyyy") + " (all-day)";
+  }
+
+  const duration = differenceInHours(zonedEnd, zonedStart, {
+    roundingMethod: "floor",
+  });
+
+  return (
+    format(zonedStart, "MMM d, yyyy") +
+    " (" +
+    duration +
+    "h at " +
+    format(zonedStart, "h:mm a") +
+    ")"
   );
 }

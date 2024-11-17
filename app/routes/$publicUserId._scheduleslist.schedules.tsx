@@ -179,21 +179,21 @@ function buildPeriod(schedule: dtos.Schedule, timeZone: string): string {
   const formatter = buildFormatter(zonedFirstShiftStart, zonedLastShiftStart);
 
   if (isSameMonth(zonedFirstShiftStart, zonedLastShiftStart)) {
-    const firstFormat = "LLL d"; // Nov 15
+    const firstFormat = "MMM d"; // Nov 15
     const lastFormat = "d yyyy";
 
     return formatter(firstFormat, lastFormat);
   }
 
   if (isSameYear(zonedFirstShiftStart, zonedLastShiftStart)) {
-    const firstFormat = "LLL d";
-    const lastFormat = "LLL d yyyy";
+    const firstFormat = "MMM d";
+    const lastFormat = "MMM d yyyy";
 
     return formatter(firstFormat, lastFormat);
   }
 
-  const firstFormat = "LLL d yyyy";
-  const lastFormat = "LLL d yyyy";
+  const firstFormat = "MMM d yyyy";
+  const lastFormat = "MMM d yyyy";
 
   return formatter(firstFormat, lastFormat);
 }
