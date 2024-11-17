@@ -2,6 +2,8 @@ import * as entities from "@/entities";
 
 import { error, ok, Result } from "@/helpers/result";
 import { slugify } from "@/helpers/url";
+import { addDays, parse } from "date-fns";
+import { toZonedTime } from "date-fns-tz";
 import { nanoid } from "nanoid";
 
 export async function insert(
@@ -39,12 +41,12 @@ export async function insert(
     shifts: (
       | {
           type: "all-day";
-          date: string;
+          date: string; // YYYY-MM-DD
         }
       | {
           type: "timed";
-          start: string;
-          end: string;
+          start: string; // YYYY-MM-DDTHH:mm
+          end: string; // YYYY-MM-DDTHH:mm
         }
     )[];
   },
@@ -84,14 +86,38 @@ export async function insert(
 
   await insertManyShifts(
     options.shifts.flatMap((shift) => {
+      let start: number;
+      let end: number;
+
       if (shift.type === "all-day") {
-        return [];
+        // this will give us the start of the day in UTC
+        // i.e. it will actually be 00:00 at UTC
+        const date = parse(shift.date, "yyyy-MM-dd", new Date());
+
+        // this will change the timestamp to represent the start date in UTC
+        const zonedStart = toZonedTime(date, user.timeZone);
+
+        // do this once localized... might matter?
+        const zonedEnd = addDays(zonedStart, 1);
+
+        start = zonedStart.getTime();
+        end = zonedEnd.getTime();
+      } else {
+        // this will get us the start/end that the user input
+        // but as though we were in UTC
+        // i.e. if they entered 16:00, this will be 16:00 in UTC
+        // since the server runs on UTC
+        const utcStart = parse(shift.start, "yyyy-MM-dd'T'HH:mm", new Date());
+        const utcEnd = parse(shift.end, "yyyy-MM-dd'T'HH:mm", new Date());
+
+        const zonedStart = toZonedTime(utcStart, user.timeZone);
+        const zonedEnd = toZonedTime(utcEnd, user.timeZone);
+
+        start = zonedStart.getTime();
+        end = zonedEnd.getTime();
       }
 
       const publicShiftId = `shi_${nanoid(12)}`;
-
-      const start = new Date(shift.start).getTime();
-      const end = new Date(shift.end).getTime();
 
       return {
         publicId: publicShiftId,
@@ -103,7 +129,7 @@ export async function insert(
         userId: user.id,
         start,
         end,
-        isAllDay: false,
+        isAllDay: shift.type === "all-day",
         claimed: false,
       };
     }),
