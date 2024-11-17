@@ -17,21 +17,15 @@ import { json, LoaderFunctionArgs } from "@remix-run/server-runtime";
 import { userIdCookie } from "@/cookies.server";
 
 export const loader = async (args: LoaderFunctionArgs) => {
-  const user = await middleware.user.middleware(args);
+  const userResult = await middleware.user.middleware(args);
 
-  const response: { user: dtos.User } = {
-    user: {
-      publicId: user.publicId,
-      firstName: user.firstName,
-      timeZone: user.timeZone,
-    },
-  };
+  const user: dtos.User = dtos.fromUserEntity(userResult);
 
   const headers = new Headers({
     "Set-Cookie": await userIdCookie.serialize(user.publicId),
   });
 
-  return json(response, { headers });
+  return json({ user }, { headers });
 };
 
 export default function Page() {

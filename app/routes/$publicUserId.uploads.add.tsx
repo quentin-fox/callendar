@@ -63,13 +63,7 @@ export const loader = async ({ context, params }: LoaderFunctionArgs) => {
     throw new Error(result.error);
   }
 
-  const locations: dtos.Location[] = result.value.map(
-    (location): dtos.Location => ({
-      title: location.title,
-      publicId: location.publicId,
-      createdAt: location.createdAt,
-    }),
-  );
+  const locations: dtos.Location[] = result.value.map(dtos.fromLocationEntity);
 
   return json({ locations });
 };

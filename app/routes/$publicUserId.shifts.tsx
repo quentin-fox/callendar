@@ -36,8 +36,8 @@ import TableFooterButtons from "@/components/TableFooterButtons";
 export const handle = {
   breadcrumb: () => {
     return {
-      title: "Locations",
-      to: "/locations",
+      title: "Shifts",
+      to: "/shifts",
     };
   },
 };

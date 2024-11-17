@@ -55,32 +55,11 @@ export const loader = async ({ context, params }: LoaderFunctionArgs) => {
     services.locations.list(listLocations, user).then(unwrap),
   ]);
 
-  const schedules: dtos.Schedule[] = schedulesResult.map(
-    (schedule): dtos.Schedule => {
-      const location = locationsResult.find(
-        (l) => l.id === schedule.locationId,
-      );
+  const schedules: dtos.Schedule[] = schedulesResult.map((schedule) => {
+    const location = locationsResult.find((l) => l.id === schedule.locationId);
 
-      return {
-        publicId: schedule.publicId,
-        createdAt: schedule.createdAt,
-        modifiedAt: schedule.modifiedAt,
-        title: schedule.title,
-        description: schedule.description,
-        location: location
-          ? {
-              title: location.title,
-              publicId: location.publicId,
-              createdAt: location.createdAt,
-            }
-          : null,
-        isDraft: schedule.isDraft,
-        numShifts: schedule.numShifts,
-        firstShiftStart: schedule.firstShiftStart,
-        lastShiftStart: schedule.lastShiftStart,
-      };
-    },
-  );
+    return dtos.fromScheduleEntity(schedule, location ?? null);
+  });
 
   return json({ schedules });
 };

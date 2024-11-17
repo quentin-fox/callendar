@@ -1,4 +1,4 @@
-import { isError } from "@/helpers/result";
+import { isError, unwrap } from "@/helpers/result";
 
 import * as services from "@/services";
 import * as dtos from "@/dtos";
@@ -75,18 +75,12 @@ export const loader = async ({
 
   const listLocations = models.locations.list.bind(null, DB);
 
-  const result = await services.locations.list(listLocations, user);
+  const locationsResult = await services.locations
+    .list(listLocations, user)
+    .then(unwrap);
 
-  if (isError(result)) {
-    throw new Error(result.error);
-  }
-
-  const locations: dtos.Location[] = result.value.map(
-    (location): dtos.Location => ({
-      title: location.title,
-      publicId: location.publicId,
-      createdAt: location.createdAt,
-    }),
+  const locations: dtos.Location[] = locationsResult.map(
+    dtos.fromLocationEntity,
   );
 
   let initialShifts: (dtos.AllDayShiftOutput | dtos.TimedShiftOutput)[] = [];

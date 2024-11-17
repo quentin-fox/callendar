@@ -58,31 +58,13 @@ export const loader = async ({ params, context }: LoaderFunctionArgs) => {
     (l) => l.id === scheduleResult.locationId,
   );
 
-  const schedule: dtos.Schedule = {
-    publicId: scheduleResult.publicId,
-    createdAt: scheduleResult.createdAt,
-    modifiedAt: scheduleResult.modifiedAt,
-    title: scheduleResult.title,
-    description: scheduleResult.description,
-    location: location
-      ? {
-          title: location.title,
-          publicId: location.publicId,
-          createdAt: location.createdAt,
-        }
-      : null,
-    isDraft: scheduleResult.isDraft,
-    numShifts: scheduleResult.numShifts,
-    firstShiftStart: scheduleResult.firstShiftStart,
-    lastShiftStart: scheduleResult.lastShiftStart,
-  };
+  const schedule: dtos.Schedule = dtos.fromScheduleEntity(
+    scheduleResult,
+    location ?? null,
+  );
 
   const locations: dtos.Location[] = locationsResult.map(
-    (location): dtos.Location => ({
-      title: location.title,
-      publicId: location.publicId,
-      createdAt: location.createdAt,
-    }),
+    dtos.fromLocationEntity,
   );
 
   return json({ schedule, locations });
