@@ -40,6 +40,7 @@ export const handle = {
     return {
       title: "Shifts",
       to: "/shifts",
+      grid: true,
     };
   },
 };
@@ -102,7 +103,7 @@ function useSelection(
   ids: string[],
   initialState: Record<string, boolean> = {},
 ) {
-  const [selected, setSelected] = useState(initialState);
+  const [selectedMap, setSelectedMap] = useState(initialState);
 
   const lastSelectedIndexRef = useRef<number>(0); // To track the last selected item
 
@@ -113,7 +114,7 @@ function useSelection(
 
       if (!event.shiftKey) {
         lastSelectedIndexRef.current = index;
-        setSelected((prev) => ({ ...prev, [ids[index]]: checked }));
+        setSelectedMap((prev) => ({ ...prev, [ids[index]]: checked }));
         return;
       }
 
@@ -128,7 +129,7 @@ function useSelection(
 
       lastSelectedIndexRef.current = index;
 
-      setSelected((prev) => ({ ...prev, ...selectedOverride }));
+      setSelectedMap((prev) => ({ ...prev, ...selectedOverride }));
     },
     [ids],
   );
@@ -140,7 +141,7 @@ function useSelection(
       }
 
       if (checked === false) {
-        setSelected({});
+        setSelectedMap({});
       }
 
       if (checked === true) {
@@ -152,16 +153,16 @@ function useSelection(
           {},
         );
 
-        setSelected(publicIds);
+        setSelectedMap(publicIds);
       }
     },
     [ids],
   );
 
   return [
-    selected,
+    selectedMap,
     onClick,
-    getAllCheckedState(ids, selected),
+    getAllCheckedState(ids, selectedMap),
     onAllCheckedChange,
   ] as const;
 }
@@ -171,101 +172,148 @@ export default function Page() {
 
   const { user } = useOutletUserContext();
 
-  const [selectedPublicIds, onClick, allCheckedState, onAllCheckedChange] =
+  const [publicIdSelectedMap, onClick, allCheckedState, onAllCheckedChange] =
     useSelection(shifts.map((s) => s.publicId));
 
+  const unclaimedSelectedShifts = shifts.filter(
+    (s) => publicIdSelectedMap[s.publicId] === true && s.claimed === false,
+  );
+
+  const claimedSelectedShifts = shifts.filter(
+    (s) => publicIdSelectedMap[s.publicId] === true && s.claimed,
+  );
+
+  const numSelectedShifts =
+    unclaimedSelectedShifts.length + claimedSelectedShifts.length;
+
+  const searchParams = new URLSearchParams();
+
+  for (const publicId in publicIdSelectedMap) {
+    if (publicIdSelectedMap[publicId]) {
+      searchParams.append("publicShiftId", publicId);
+    }
+  }
+
   return (
-    <div className="flex flex-col items-center">
-      <Outlet context={{ user }} />
-      {shifts.length === 0 && (
-        <TableEmptyCard.Spacing>
-          <TableEmptyCard
-            title="No Locations"
-            description="Add a location to associate a schedule and/or shift with a hospital, clinic, etc."
-          >
-            <Link to="add">
-              <Button type="button" variant={"default"}>
-                Add a Location
-              </Button>
-            </Link>
-          </TableEmptyCard>
-        </TableEmptyCard.Spacing>
-      )}
-      {shifts.length > 0 && (
-        <>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-[40px]">
-                  <div className="flex items-center justify-start">
-                    <Checkbox
-                      id={"selected-all"}
-                      name={"selected-all"}
-                      checked={allCheckedState}
-                      onCheckedChange={onAllCheckedChange}
-                    />
-                  </div>
-                </TableHead>
-                <TableHead>Summary</TableHead>
-                <TableHead>Schedule</TableHead>
-                <TableHead>Location</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead />
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {shifts.map((shift, index) => (
-                <TableRow key={shift.publicId}>
-                  <TableCell className="w-[40px]">
+    <>
+      <div
+        className="flex flex-row justify-end gap-4"
+        style={{ gridArea: "header-content" }}
+      >
+        {numSelectedShifts > 0 && unclaimedSelectedShifts.length > 0 && (
+          <Link to={"mark-many-claimed?" + searchParams.toString()}>
+            <Button type="button" variant={"default"} size="sm">
+              Mark as Claimed
+            </Button>
+          </Link>
+        )}
+        {numSelectedShifts > 0 && claimedSelectedShifts.length > 0 && (
+          <Link to={"mark-many-unclaimed?" + searchParams.toString()}>
+            <Button type="button" variant={"default"} size="sm">
+              Mark as Unclaimed
+            </Button>
+          </Link>
+        )}
+      </div>
+      <div
+        className="flex flex-col items-center"
+        style={{ gridArea: "main-content" }}
+      >
+        <Outlet context={{ user }} />
+        {shifts.length === 0 && (
+          <TableEmptyCard.Spacing>
+            <TableEmptyCard
+              title="No Locations"
+              description="Add a location to associate a schedule and/or shift with a hospital, clinic, etc."
+            >
+              <Link to="add">
+                <Button type="button" variant={"default"}>
+                  Add a Location
+                </Button>
+              </Link>
+            </TableEmptyCard>
+          </TableEmptyCard.Spacing>
+        )}
+        {shifts.length > 0 && (
+          <>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-[40px]">
                     <div className="flex items-center justify-start">
                       <Checkbox
-                        id={"selected" + shift.publicId}
-                        name={"selected" + shift.publicId}
-                        value={selectedPublicIds[shift.publicId] ? "on" : "off"}
-                        checked={selectedPublicIds[shift.publicId] ?? false}
-                        onClick={(e) => onClick(e, index)}
+                        id={"selected-all"}
+                        name={"selected-all"}
+                        checked={allCheckedState}
+                        onCheckedChange={onAllCheckedChange}
                       />
                     </div>
-                  </TableCell>
-                  <TableCell>{buildSummary(shift, user.timeZone)}</TableCell>
-                  <TableCell>{shift.schedule?.title ?? "-"}</TableCell>
-                  <TableCell>{shift.location?.title ?? "-"}</TableCell>
-                  <TableCell>
-                    {shift.claimed ? "Claimed" : "Unclaimed"}
-                  </TableCell>
-                  <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="outline" size="icon">
-                          <DotsHorizontalIcon />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent>
-                        {!shift.claimed && (
-                          <Link to={shift.publicId + "/mark-claimed"}>
-                            <DropdownMenuItem>Mark Claimed</DropdownMenuItem>
-                          </Link>
-                        )}
-                        {shift.claimed && (
-                          <Link to={shift.publicId + "/mark-unclaimed"}>
-                            <DropdownMenuItem>Mark Unclaimed</DropdownMenuItem>
-                          </Link>
-                        )}
-                        <Link to={shift.publicId + "/remove"}>
-                          <DropdownMenuItem className="text-destructive">
-                            Remove
-                          </DropdownMenuItem>
-                        </Link>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
+                  </TableHead>
+                  <TableHead>Summary</TableHead>
+                  <TableHead>Schedule</TableHead>
+                  <TableHead>Location</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead />
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </>
-      )}
-    </div>
+              </TableHeader>
+              <TableBody>
+                {shifts.map((shift, index) => (
+                  <TableRow key={shift.publicId}>
+                    <TableCell className="w-[40px]">
+                      <div className="flex items-center justify-start">
+                        <Checkbox
+                          id={"selected" + shift.publicId}
+                          name={"selected" + shift.publicId}
+                          value={
+                            publicIdSelectedMap[shift.publicId] ? "on" : "off"
+                          }
+                          checked={publicIdSelectedMap[shift.publicId] ?? false}
+                          onClick={(e) => onClick(e, index)}
+                        />
+                      </div>
+                    </TableCell>
+                    <TableCell>{buildSummary(shift, user.timeZone)}</TableCell>
+                    <TableCell>{shift.schedule?.title ?? "-"}</TableCell>
+                    <TableCell>{shift.location?.title ?? "-"}</TableCell>
+                    <TableCell>
+                      {shift.claimed ? "Claimed" : "Unclaimed"}
+                    </TableCell>
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="outline" size="icon">
+                            <DotsHorizontalIcon />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent>
+                          {!shift.claimed && (
+                            <Link to={shift.publicId + "/mark-claimed"}>
+                              <DropdownMenuItem>Mark Claimed</DropdownMenuItem>
+                            </Link>
+                          )}
+                          {shift.claimed && (
+                            <Link to={shift.publicId + "/mark-unclaimed"}>
+                              <DropdownMenuItem>
+                                Mark Unclaimed
+                              </DropdownMenuItem>
+                            </Link>
+                          )}
+                          <Link to={shift.publicId + "/remove"}>
+                            <DropdownMenuItem className="text-destructive">
+                              Remove
+                            </DropdownMenuItem>
+                          </Link>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </>
+        )}
+      </div>
+    </>
   );
 }
 

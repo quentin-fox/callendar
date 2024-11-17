@@ -31,7 +31,7 @@ export const loader = async (args: LoaderFunctionArgs) => {
 function parseBreadcrumbObject(
   publicUserId: string,
   bc: unknown,
-): { title: string; to: string }[] {
+): { title: string; to: string; grid?: boolean }[] {
   if (Array.isArray(bc)) {
     const parse = parseBreadcrumbObject.bind(null, publicUserId);
     return bc.flatMap(parse);
@@ -48,9 +48,13 @@ function parseBreadcrumbObject(
   if ("to" in bc === false || typeof bc.to !== "string") {
     return [];
   }
+
+  const grid =
+    "grid" in bc && typeof bc.grid === "boolean" ? bc.grid : undefined;
+
   const { title, to } = bc;
 
-  return [{ title, to: "/" + publicUserId + to }];
+  return [{ title, to: "/" + publicUserId + to, grid }];
 }
 
 export default function Page() {
@@ -58,30 +62,33 @@ export default function Page() {
 
   const { user } = useLoaderData<typeof loader>();
 
-  const breadcrumbs: { title: string; to: string }[] = matches.flatMap(
-    (match) => {
-      if (
-        typeof match.handle !== "object" ||
-        !match.handle ||
-        "breadcrumb" in match.handle === false ||
-        typeof match.handle.breadcrumb !== "function"
-      ) {
-        return [];
-      }
+  const breadcrumbs = matches.flatMap((match) => {
+    if (
+      typeof match.handle !== "object" ||
+      !match.handle ||
+      "breadcrumb" in match.handle === false ||
+      typeof match.handle.breadcrumb !== "function"
+    ) {
+      return [];
+    }
 
-      const bc: unknown = match.handle.breadcrumb();
+    const bc: unknown = match.handle.breadcrumb();
 
-      return parseBreadcrumbObject(user.publicId, bc);
-    },
-  );
+    return parseBreadcrumbObject(user.publicId, bc);
+  });
+
+  const grid = breadcrumbs.some((bc) => bc.grid);
 
   return (
     <div className="flex min-h-screen w-full flex-col items-center">
       <div className="flex flex-col items-stretch w-full md:max-w-[64rem] p-4 gap-4">
         <NavigationBar user={user} />
 
-        <main className="flex flex-col rounded-lg bg-background p-4 gap-4">
-          <header>
+        <main
+          className="grid flex-col rounded-lg bg-background p-4 gap-4"
+          style={{ gridTemplateAreas, gridTemplateRows: "2rem 1fr" }}
+        >
+          <header className="flex" style={{ gridArea: "breadcrumb" }}>
             <Breadcrumb>
               <BreadcrumbList>
                 {[
@@ -102,9 +109,19 @@ export default function Page() {
               </BreadcrumbList>
             </Breadcrumb>
           </header>
-          <Outlet context={{ user }} />
+          {!!grid && <Outlet context={{ user }} />}
+          {!grid && (
+            <div style={{ gridArea: "main-content" }}>
+              <Outlet context={{ user }} />
+            </div>
+          )}
         </main>
       </div>
     </div>
   );
 }
+
+const gridTemplateAreas = `
+  "breadcrumb header-content"
+  "main-content main-content"
+`;
