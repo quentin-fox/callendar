@@ -16,7 +16,7 @@ export type Schedule = {
   modifiedAt: string | null;
   title: string;
   description: string;
-  location: Location;
+  location: Location | null;
   isDraft: boolean;
   numShifts: number;
   firstShiftStart: string | null;

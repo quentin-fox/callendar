@@ -11,7 +11,7 @@ import * as services from "@/services";
 import * as dtos from "@/dtos";
 import * as middleware from "@/middleware/index.server";
 
-import { isError } from "@/helpers/result";
+import { isError, unwrap } from "@/helpers/result";
 import { Form, Link, useActionData, useLoaderData } from "@remix-run/react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -47,28 +47,37 @@ export const loader = async ({ params, context }: LoaderFunctionArgs) => {
   const listSchedules = models.schedules.list.bind(null, DB);
   const listLocations = models.locations.list.bind(null, DB);
 
-  const schedulePromise = services.schedules.listOne(listSchedules, user, {
-    publicScheduleId,
-  });
-
-  const locationsPromise = services.locations.list(listLocations, user);
-
   const [scheduleResult, locationsResult] = await Promise.all([
-    schedulePromise,
-    locationsPromise,
+    services.schedules
+      .listOne(listSchedules, user, { publicScheduleId })
+      .then(unwrap),
+    services.locations.list(listLocations, user).then(unwrap),
   ]);
 
-  if (isError(scheduleResult)) {
-    throw new Error(scheduleResult.error);
-  }
+  const location = locationsResult.find(
+    (l) => l.id === scheduleResult.locationId,
+  );
 
-  if (isError(locationsResult)) {
-    throw new Error(locationsResult.error);
-  }
+  const schedule: dtos.Schedule = {
+    publicId: scheduleResult.publicId,
+    createdAt: scheduleResult.createdAt,
+    modifiedAt: scheduleResult.modifiedAt,
+    title: scheduleResult.title,
+    description: scheduleResult.description,
+    location: location
+      ? {
+          title: location.title,
+          publicId: location.publicId,
+          createdAt: location.createdAt,
+        }
+      : null,
+    isDraft: scheduleResult.isDraft,
+    numShifts: scheduleResult.numShifts,
+    firstShiftStart: scheduleResult.firstShiftStart,
+    lastShiftStart: scheduleResult.lastShiftStart,
+  };
 
-  const schedule: dtos.Schedule = scheduleResult.value;
-
-  const locations: dtos.Location[] = locationsResult.value.map(
+  const locations: dtos.Location[] = locationsResult.map(
     (location): dtos.Location => ({
       title: location.title,
       publicId: location.publicId,
@@ -151,7 +160,7 @@ export default function Page() {
             <Select
               name="publicLocationId"
               required
-              defaultValue={schedule.location.publicId}
+              defaultValue={schedule.location?.publicId}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Location" />

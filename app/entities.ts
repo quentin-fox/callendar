@@ -22,7 +22,7 @@ export type Schedule = {
   removedAt: string | null;
   title: string;
   description: string;
-  location: Location;
+  locationId: number;
   userId: number;
   isDraft: boolean;
   numShifts: number;

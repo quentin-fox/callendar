@@ -1,4 +1,4 @@
-import { isError } from "@/helpers/result";
+import { unwrap } from "@/helpers/result";
 
 import * as models from "@/models";
 import * as services from "@/services";
@@ -48,30 +48,38 @@ export const loader = async ({ context, params }: LoaderFunctionArgs) => {
   const { DB } = context.cloudflare.env;
 
   const listSchedules = models.schedules.list.bind(null, DB);
+  const listLocations = models.locations.list.bind(null, DB);
 
-  const result = await services.schedules.list(listSchedules, user);
+  const [schedulesResult, locationsResult] = await Promise.all([
+    services.schedules.list(listSchedules, user).then(unwrap),
+    services.locations.list(listLocations, user).then(unwrap),
+  ]);
 
-  if (isError(result)) {
-    throw new Error(result.error);
-  }
+  const schedules: dtos.Schedule[] = schedulesResult.map(
+    (schedule): dtos.Schedule => {
+      const location = locationsResult.find(
+        (l) => l.id === schedule.locationId,
+      );
 
-  const schedules: dtos.Schedule[] = result.value.map(
-    (schedule): dtos.Schedule => ({
-      publicId: schedule.publicId,
-      createdAt: schedule.createdAt,
-      modifiedAt: schedule.modifiedAt,
-      title: schedule.title,
-      description: schedule.description,
-      location: {
-        title: schedule.location.title,
-        publicId: schedule.location.publicId,
-        createdAt: schedule.location.createdAt,
-      },
-      isDraft: schedule.isDraft,
-      numShifts: schedule.numShifts,
-      firstShiftStart: schedule.firstShiftStart,
-      lastShiftStart: schedule.lastShiftStart,
-    }),
+      return {
+        publicId: schedule.publicId,
+        createdAt: schedule.createdAt,
+        modifiedAt: schedule.modifiedAt,
+        title: schedule.title,
+        description: schedule.description,
+        location: location
+          ? {
+              title: location.title,
+              publicId: location.publicId,
+              createdAt: location.createdAt,
+            }
+          : null,
+        isDraft: schedule.isDraft,
+        numShifts: schedule.numShifts,
+        firstShiftStart: schedule.firstShiftStart,
+        lastShiftStart: schedule.lastShiftStart,
+      };
+    },
   );
 
   return json({ schedules });
@@ -122,7 +130,9 @@ export default function Page() {
                 <TableRow key={schedule.publicId}>
                   <TableCell>{schedule.title}</TableCell>
                   <TableCell>{format(schedule.createdAt, "PPp")}</TableCell>
-                  <TableCell>{schedule.location.title}</TableCell>
+                  <TableCell>
+                    {schedule.location?.title ?? "Location Removed"}
+                  </TableCell>
                   <TableCell>{buildSummary(schedule, user.timeZone)}</TableCell>
                   <TableCell>
                     {schedule.isDraft ? "Draft" : "Finalized"}

@@ -18,3 +18,11 @@ export function isOk<T, E>(result: Result<T, E>): result is Ok<T> {
 export function isError<T, E>(result: Result<T, E>): result is Error<E> {
   return !result.success;
 }
+
+export function unwrap<T>(result: Result<T, string>): T {
+  if (result.success) {
+    return result.value;
+  } else {
+    throw result.error;
+  }
+}

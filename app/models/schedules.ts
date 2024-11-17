@@ -9,10 +9,6 @@ type Row = {
   title: string;
   description: string;
   location_id: number;
-  location_title: string;
-  location_public_id: string;
-  location_created_at: number;
-  location_user_id: number;
   user_id: number;
   is_draft: number;
   num_shifts: number;
@@ -74,13 +70,7 @@ function toEntity(row: Row): entities.Schedule {
     description: row.description,
     userId: row.user_id,
     isDraft: row.is_draft === 1,
-    location: {
-      id: row.location_id,
-      publicId: row.location_public_id,
-      createdAt: new Date(row.location_created_at).toISOString(),
-      title: row.location_title,
-      userId: row.location_user_id,
-    },
+    locationId: row.location_id,
     numShifts: row.num_shifts,
     firstShiftStart:
       row.first_shift_start === null
@@ -109,10 +99,6 @@ SELECT
   schedules.user_id,
   schedules.is_draft,
   location_id,
-  locations.title as location_title,
-  locations.public_id as location_public_id,
-  locations.created_at as location_created_at,
-  locations.user_id as location_user_id,
   (
     SELECT COUNT(*)
     FROM shifts
@@ -136,7 +122,6 @@ SELECT
   ) as "last_shift_start"
 FROM
   schedules
-  JOIN locations on schedules.location_id = locations.id
 WHERE
   schedules.public_id = ?;
 `;
@@ -171,10 +156,6 @@ SELECT
   schedules.user_id,
   schedules.is_draft,
   location_id,
-  locations.title as location_title,
-  locations.public_id as location_public_id,
-  locations.created_at as location_created_at,
-  locations.user_id as location_user_id,
   (
     SELECT COUNT(*)
     FROM shifts
@@ -198,7 +179,6 @@ SELECT
   ) as "last_shift_start"
 FROM
   schedules
-  JOIN locations on schedules.location_id = locations.id
 WHERE
   schedules.removed_at IS NULL AND
   schedules.user_id = ?;
