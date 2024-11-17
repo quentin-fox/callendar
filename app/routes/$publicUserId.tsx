@@ -10,8 +10,29 @@ import {
 } from "@/components/ui/breadcrumb";
 import NavigationBar from "@/components/NavigationBar";
 
-import { loader } from "@/loaders/user.server";
-export { loader };
+import * as dtos from "@/dtos";
+import * as middleware from "@/middleware/index.server";
+
+import { json, LoaderFunctionArgs } from "@remix-run/server-runtime";
+import { userIdCookie } from "@/cookies.server";
+
+export const loader = async (args: LoaderFunctionArgs) => {
+  const user = await middleware.user.middleware(args);
+
+  const response: { user: dtos.User } = {
+    user: {
+      publicId: user.publicId,
+      firstName: user.firstName,
+      timeZone: user.timeZone,
+    },
+  };
+
+  const headers = new Headers({
+    "Set-Cookie": await userIdCookie.serialize(user.publicId),
+  });
+
+  return json(response, { headers });
+};
 
 export default function Page() {
   const matches = useMatches();
