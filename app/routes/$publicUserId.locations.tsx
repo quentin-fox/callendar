@@ -25,7 +25,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
@@ -110,7 +109,6 @@ export default function Page() {
                         <Link to={location.publicId + "/edit"}>
                           <DropdownMenuItem>Edit</DropdownMenuItem>
                         </Link>
-                        <DropdownMenuSeparator />
                         <Link to={location.publicId + "/remove"}>
                           <DropdownMenuItem className="text-destructive">
                             Remove

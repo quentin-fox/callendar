@@ -70,3 +70,103 @@ export async function remove(
 
   return ok(options.publicShiftId);
 }
+
+export async function markClaimed(
+  listShiftsByUser: (options: { userId: number }) => Promise<entities.Shift[]>,
+  markShiftClaimed: (options: { shiftId: number }) => Promise<void>,
+  user: entities.User,
+  options: {
+    publicShiftId: string;
+  },
+): Promise<Result<string, string>> {
+  const shifts = await listShiftsByUser({
+    userId: user.id,
+  });
+
+  const shift = shifts.find((s) => s.publicId === options.publicShiftId);
+
+  if (!shift) {
+    return error("Shift does not exist.");
+  }
+
+  await markShiftClaimed({ shiftId: shift.id });
+
+  return ok(options.publicShiftId);
+}
+
+export async function markUnclaimed(
+  listShiftsByUser: (options: { userId: number }) => Promise<entities.Shift[]>,
+  markShiftUnclaimed: (options: { shiftId: number }) => Promise<void>,
+  user: entities.User,
+  options: {
+    publicShiftId: string;
+  },
+): Promise<Result<string, string>> {
+  const shifts = await listShiftsByUser({
+    userId: user.id,
+  });
+
+  const shift = shifts.find((s) => s.publicId === options.publicShiftId);
+
+  if (!shift) {
+    return error("Shift does not exist.");
+  }
+
+  await markShiftUnclaimed({ shiftId: shift.id });
+
+  return ok(options.publicShiftId);
+}
+
+export async function markClaimedBySchedule(
+  listSchedules: (options: { userId: number }) => Promise<entities.Schedule[]>,
+  markShiftClaimedBySchedule: (options: {
+    scheduleId: number;
+  }) => Promise<void>,
+  user: entities.User,
+  options: {
+    publicScheduleId: string;
+  },
+): Promise<Result<string, string>> {
+  const schedules = await listSchedules({
+    userId: user.id,
+  });
+
+  const schedule = schedules.find(
+    (s) => s.publicId === options.publicScheduleId,
+  );
+
+  if (!schedule) {
+    return error("Schedule does not exist.");
+  }
+
+  await markShiftClaimedBySchedule({ scheduleId: schedule.id });
+
+  return ok(options.publicScheduleId);
+}
+
+export async function markUnclaimedBySchedule(
+  listSchedules: (options: { userId: number }) => Promise<entities.Schedule[]>,
+  markShiftUnclaimedBySchedule: (options: {
+    scheduleId: number;
+  }) => Promise<void>,
+  user: entities.User,
+  options: {
+    publicScheduleId: string;
+  },
+): Promise<Result<string, string>> {
+  const schedules = await listSchedules({
+    userId: user.id,
+  });
+
+  const schedule = schedules.find(
+    (s) => s.publicId === options.publicScheduleId,
+  );
+
+  if (!schedule) {
+    return error("Schedule does not exist.");
+  }
+
+  await markShiftUnclaimedBySchedule({ scheduleId: schedule.id });
+
+  return ok(options.publicScheduleId);
+}

@@ -25,7 +25,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { format, isSameDay, isSameMonth, isSameYear } from "date-fns";
@@ -126,10 +125,25 @@ export default function Page() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent>
+                        {schedule.numClaimedShifts < schedule.numShifts && (
+                          <Link to={schedule.publicId + "/mark-shifts-claimed"}>
+                            <DropdownMenuItem>
+                              Mark All Shifts Claimed
+                            </DropdownMenuItem>
+                          </Link>
+                        )}
+                        {schedule.numUnclaimedShifts < schedule.numShifts && (
+                          <Link
+                            to={schedule.publicId + "/mark-shifts-unclaimed"}
+                          >
+                            <DropdownMenuItem>
+                              Mark All Shifts Unclaimed
+                            </DropdownMenuItem>
+                          </Link>
+                        )}
                         <Link to={schedule.publicId + "/edit"}>
                           <DropdownMenuItem>Edit</DropdownMenuItem>
                         </Link>
-                        <DropdownMenuSeparator />
                         <Link to={schedule.publicId + "/remove"}>
                           <DropdownMenuItem className="text-destructive">
                             Remove

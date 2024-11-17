@@ -25,13 +25,11 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
 import { DotsHorizontalIcon } from "@radix-ui/react-icons";
 import { differenceInHours, format } from "date-fns";
-import TableFooterButtons from "@/components/TableFooterButtons";
 import { toZonedTime } from "date-fns-tz";
 
 export const handle = {
@@ -132,10 +130,16 @@ export default function Page() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent>
-                        <Link to={shift.publicId + "/edit"}>
-                          <DropdownMenuItem>Edit</DropdownMenuItem>
-                        </Link>
-                        <DropdownMenuSeparator />
+                        {!shift.claimed && (
+                          <Link to={shift.publicId + "/mark-claimed"}>
+                            <DropdownMenuItem>Mark Claimed</DropdownMenuItem>
+                          </Link>
+                        )}
+                        {shift.claimed && (
+                          <Link to={shift.publicId + "/mark-unclaimed"}>
+                            <DropdownMenuItem>Mark Unclaimed</DropdownMenuItem>
+                          </Link>
+                        )}
                         <Link to={shift.publicId + "/remove"}>
                           <DropdownMenuItem className="text-destructive">
                             Remove
@@ -148,13 +152,6 @@ export default function Page() {
               ))}
             </TableBody>
           </Table>
-          <TableFooterButtons>
-            <Link to="add">
-              <Button type="button" variant={"default"}>
-                Add a Location
-              </Button>
-            </Link>
-          </TableFooterButtons>
         </>
       )}
     </div>

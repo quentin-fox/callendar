@@ -49,7 +49,6 @@ import { DotsHorizontalIcon } from "@radix-ui/react-icons";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { DropdownMenuSeparator } from "@radix-ui/react-dropdown-menu";
 import { Separator } from "@/components/ui/separator";
 import TableEmptyCard from "@/components/TableEmptyCard";
 import { cn } from "@/lib/utils";
@@ -57,10 +56,16 @@ import TableFooterButtons from "@/components/TableFooterButtons";
 
 export const handle = {
   breadcrumb: () => {
-    return {
-      title: "Add Schedule",
-      to: "/schedules/add",
-    };
+    return [
+      {
+        title: "Schedules",
+        to: "/schedules",
+      },
+      {
+        title: "Add Schedule",
+        to: "/schedules/add",
+      },
+    ];
   },
 };
 
@@ -480,7 +485,6 @@ export default function Page() {
                                 >
                                   Change to Timed Shift
                                 </DropdownMenuItem>
-                                <DropdownMenuSeparator />
                                 <DropdownMenuItem
                                   className="text-destructive"
                                   onSelect={() =>
@@ -566,7 +570,6 @@ export default function Page() {
                               >
                                 Change to All-Day Shift
                               </DropdownMenuItem>
-                              <DropdownMenuSeparator />
                               <DropdownMenuItem
                                 className="text-destructive"
                                 onSelect={() => handleRemoveShift(shift, index)}
