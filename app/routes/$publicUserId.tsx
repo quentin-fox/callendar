@@ -28,6 +28,31 @@ export const loader = async (args: LoaderFunctionArgs) => {
   return json({ user }, { headers });
 };
 
+function parseBreadcrumbObject(
+  publicUserId: string,
+  bc: unknown,
+): { title: string; to: string }[] {
+  if (Array.isArray(bc)) {
+    const parse = parseBreadcrumbObject.bind(null, publicUserId);
+    return bc.flatMap(parse);
+  }
+
+  if (typeof bc !== "object" || !bc) {
+    return [];
+  }
+
+  if ("title" in bc === false || typeof bc.title !== "string") {
+    return [];
+  }
+
+  if ("to" in bc === false || typeof bc.to !== "string") {
+    return [];
+  }
+  const { title, to } = bc;
+
+  return [{ title, to: "/" + publicUserId + to }];
+}
+
 export default function Page() {
   const matches = useMatches();
 
@@ -46,20 +71,7 @@ export default function Page() {
 
       const bc: unknown = match.handle.breadcrumb();
 
-      if (typeof bc !== "object" || !bc) {
-        return [];
-      }
-
-      if ("title" in bc === false || typeof bc.title !== "string") {
-        return [];
-      }
-
-      if ("to" in bc === false || typeof bc.to !== "string") {
-        return [];
-      }
-      const { title, to } = bc;
-
-      return { title, to: "/" + user.publicId + to };
+      return parseBreadcrumbObject(user.publicId, bc);
     },
   );
 
