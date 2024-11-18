@@ -50,9 +50,21 @@ export default {
           DEFAULT: "hsl(var(--chart-1))",
           foreground: "hsl(var(--chart-1))",
         },
+        chart2: {
+          DEFAULT: "hsl(var(--chart-2))",
+          foreground: "hsl(var(--chart-2))",
+        },
         chart3: {
           DEFAULT: "hsl(var(--chart-3))",
           foreground: "hsl(var(--chart-3))",
+        },
+        chart4: {
+          DEFAULT: "hsl(var(--chart-4))",
+          foreground: "hsl(var(--chart-4))",
+        },
+        chart5: {
+          DEFAULT: "hsl(var(--chart-5))",
+          foreground: "hsl(var(--chart-5))",
         },
       },
       borderRadius: {

@@ -31,6 +31,7 @@ import { format, isSameDay, isSameMonth, isSameYear } from "date-fns";
 import { toZonedTime } from "date-fns-tz";
 
 import TableFooterButtons from "@/components/TableFooterButtons";
+import { Badge } from "@/components/ui/badge";
 
 export const handle = {
   breadcrumb: () => {
@@ -100,7 +101,7 @@ export default function Page() {
                 <TableHead className="text-center">Claimed</TableHead>
                 <TableHead>Location</TableHead>
                 <TableHead>Created</TableHead>
-                <TableHead>Status</TableHead>
+                <TableHead className="text-center">Status</TableHead>
                 <TableHead />
               </TableRow>
             </TableHeader>
@@ -114,8 +115,23 @@ export default function Page() {
                   </TableCell>
                   <TableCell>{schedule.location?.title ?? "-"}</TableCell>
                   <TableCell>{format(schedule.createdAt, "PPp")}</TableCell>
-                  <TableCell>
-                    {schedule.isDraft ? "Draft" : "Finalized"}
+                  <TableCell className="text-center">
+                    {schedule.isDraft && (
+                      <Badge
+                        variant="outline"
+                        className="text-chart5 border-chart5 bg-chart5/20"
+                      >
+                        Draft
+                      </Badge>
+                    )}
+                    {!schedule.isDraft && (
+                      <Badge
+                        variant="outline"
+                        className="text-chart4 border-chart4 bg-chart4/20"
+                      >
+                        Finalized
+                      </Badge>
+                    )}
                   </TableCell>
                   <TableCell>
                     <DropdownMenu>
