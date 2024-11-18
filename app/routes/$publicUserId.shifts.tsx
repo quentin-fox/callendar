@@ -35,6 +35,7 @@ import { differenceInHours, format } from "date-fns";
 import { toZonedTime } from "date-fns-tz";
 import { Checkbox } from "@/components/ui/checkbox";
 import { CheckedState } from "@radix-ui/react-checkbox";
+import HeaderButtons from "@/components/HeaderButtons";
 
 export const handle = {
   breadcrumb: () => {
@@ -197,10 +198,7 @@ export default function Page() {
 
   return (
     <>
-      <div
-        className="flex flex-row justify-end gap-4"
-        style={{ gridArea: "header-content" }}
-      >
+      <HeaderButtons>
         {numSelectedShifts > 0 && unclaimedSelectedShifts.length > 0 && (
           <Link to={"mark-many-claimed?" + searchParams.toString()}>
             <Button type="button" variant={"default"} size="sm">
@@ -215,7 +213,7 @@ export default function Page() {
             </Button>
           </Link>
         )}
-      </div>
+      </HeaderButtons>
       <div
         className="flex flex-col items-center"
         style={{ gridArea: "main-content" }}

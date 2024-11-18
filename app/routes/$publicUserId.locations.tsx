@@ -29,14 +29,16 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 import { DotsHorizontalIcon } from "@radix-ui/react-icons";
+import HeaderButtons from "@/components/HeaderButtons";
+
 import { format } from "date-fns";
-import TableFooterButtons from "@/components/TableFooterButtons";
 
 export const handle = {
   breadcrumb: () => {
     return {
       title: "Locations",
       to: "/locations",
+      grid: true,
     };
   },
 };
@@ -65,71 +67,76 @@ export default function Page() {
   const { user } = useOutletUserContext();
 
   return (
-    <div className="flex flex-col items-center">
-      <Outlet context={{ user }} />
-      {locations.length === 0 && (
-        <TableEmptyCard.Spacing>
-          <TableEmptyCard
-            title="No Locations"
-            description="Add a location to associate a schedule and/or shift with a hospital, clinic, etc."
-          >
-            <Link to="add">
-              <Button type="button" variant={"default"}>
-                Add a Location
-              </Button>
-            </Link>
-          </TableEmptyCard>
-        </TableEmptyCard.Spacing>
-      )}
-      {locations.length > 0 && (
-        <>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-64">Title</TableHead>
-                <TableHead>ID</TableHead>
-                <TableHead>Created</TableHead>
-                <TableHead />
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {locations.map((location) => (
-                <TableRow key={location.publicId}>
-                  <TableCell className="w-64">{location.title}</TableCell>
-                  <TableCell>{location.publicId}</TableCell>
-                  <TableCell>{format(location.createdAt, "PPp")}</TableCell>
-                  <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="outline" size="icon">
-                          <DotsHorizontalIcon />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent>
-                        <Link to={location.publicId + "/edit"}>
-                          <DropdownMenuItem>Edit</DropdownMenuItem>
-                        </Link>
-                        <Link to={location.publicId + "/remove"}>
-                          <DropdownMenuItem className="text-destructive">
-                            Remove
-                          </DropdownMenuItem>
-                        </Link>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
+    <>
+      <HeaderButtons>
+        <Link to="add">
+          <Button type="button" variant={"default"} size="sm">
+            Add a Location
+          </Button>
+        </Link>
+      </HeaderButtons>
+      <div
+        className="flex flex-col items-center"
+        style={{ gridArea: "main-content" }}
+      >
+        <Outlet context={{ user }} />
+        {locations.length === 0 && (
+          <TableEmptyCard.Spacing>
+            <TableEmptyCard
+              title="No Locations"
+              description="Add a location to associate a schedule and/or shift with a hospital, clinic, etc."
+            >
+              <Link to="add">
+                <Button type="button" variant={"default"}>
+                  Add a Location
+                </Button>
+              </Link>
+            </TableEmptyCard>
+          </TableEmptyCard.Spacing>
+        )}
+        {locations.length > 0 && (
+          <>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-64">Title</TableHead>
+                  <TableHead>ID</TableHead>
+                  <TableHead>Created</TableHead>
+                  <TableHead />
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-          <TableFooterButtons>
-            <Link to="add">
-              <Button type="button" variant={"default"}>
-                Add a Location
-              </Button>
-            </Link>
-          </TableFooterButtons>
-        </>
-      )}
-    </div>
+              </TableHeader>
+              <TableBody>
+                {locations.map((location) => (
+                  <TableRow key={location.publicId}>
+                    <TableCell className="w-64">{location.title}</TableCell>
+                    <TableCell>{location.publicId}</TableCell>
+                    <TableCell>{format(location.createdAt, "PPp")}</TableCell>
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="outline" size="icon">
+                            <DotsHorizontalIcon />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent>
+                          <Link to={location.publicId + "/edit"}>
+                            <DropdownMenuItem>Edit</DropdownMenuItem>
+                          </Link>
+                          <Link to={location.publicId + "/remove"}>
+                            <DropdownMenuItem className="text-destructive">
+                              Remove
+                            </DropdownMenuItem>
+                          </Link>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </>
+        )}
+      </div>
+    </>
   );
 }

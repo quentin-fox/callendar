@@ -30,14 +30,15 @@ import {
 import { format, isSameDay, isSameMonth, isSameYear } from "date-fns";
 import { toZonedTime } from "date-fns-tz";
 
-import TableFooterButtons from "@/components/TableFooterButtons";
 import { Badge } from "@/components/ui/badge";
+import HeaderButtons from "@/components/HeaderButtons";
 
 export const handle = {
   breadcrumb: () => {
     return {
       title: "Schedules",
       to: "/schedules",
+      grid: true,
     };
   },
 };
@@ -70,123 +71,137 @@ export default function Page() {
   const { user } = useOutletUserContext();
 
   return (
-    <div className="flex flex-col items-center">
-      <Outlet context={{ user }} />
-      {schedules.length === 0 && (
-        <TableEmptyCard.Spacing>
-          <TableEmptyCard
-            title="No Schedules"
-            description="Upload your first schedule to start tracking your shifts."
-          >
+    <>
+      <HeaderButtons>
+        {schedules.length > 0 && (
+          <>
             <Link to="../uploads/add" relative="path">
-              <Button type="button" variant={"default"}>
+              <Button type="button" variant={"default"} size="sm">
                 Upload a Schedule
               </Button>
             </Link>
             <Link to="add" relative="path">
-              <Button type="button" variant={"default"}>
+              <Button type="button" variant={"default"} size="sm">
                 Add Blank Schedule
               </Button>
             </Link>
-          </TableEmptyCard>
-        </TableEmptyCard.Spacing>
-      )}
-      {schedules.length > 0 && (
-        <>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Title</TableHead>
-                <TableHead>Period</TableHead>
-                <TableHead className="text-center">Claimed</TableHead>
-                <TableHead>Location</TableHead>
-                <TableHead>Created</TableHead>
-                <TableHead className="text-center">Status</TableHead>
-                <TableHead />
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {schedules.map((schedule) => (
-                <TableRow key={schedule.publicId}>
-                  <TableCell>{schedule.title}</TableCell>
-                  <TableCell>{buildPeriod(schedule, user.timeZone)}</TableCell>
-                  <TableCell className="text-center">
-                    {schedule.numClaimedShifts} / {schedule.numShifts}
-                  </TableCell>
-                  <TableCell>{schedule.location?.title ?? "-"}</TableCell>
-                  <TableCell>{format(schedule.createdAt, "PPp")}</TableCell>
-                  <TableCell className="text-center">
-                    {schedule.isDraft && (
-                      <Badge
-                        variant="outline"
-                        className="text-chart5 border-chart5 bg-chart5/20"
-                      >
-                        Draft
-                      </Badge>
-                    )}
-                    {!schedule.isDraft && (
-                      <Badge
-                        variant="outline"
-                        className="text-chart4 border-chart4 bg-chart4/20"
-                      >
-                        Finalized
-                      </Badge>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="outline" size="icon">
-                          <DotsHorizontalIcon />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent>
-                        {schedule.numClaimedShifts < schedule.numShifts && (
-                          <Link to={schedule.publicId + "/mark-shifts-claimed"}>
-                            <DropdownMenuItem>
-                              Mark All Shifts Claimed
-                            </DropdownMenuItem>
-                          </Link>
-                        )}
-                        {schedule.numUnclaimedShifts < schedule.numShifts && (
-                          <Link
-                            to={schedule.publicId + "/mark-shifts-unclaimed"}
-                          >
-                            <DropdownMenuItem>
-                              Mark All Shifts Unclaimed
-                            </DropdownMenuItem>
-                          </Link>
-                        )}
-                        <Link to={schedule.publicId + "/edit"}>
-                          <DropdownMenuItem>Edit</DropdownMenuItem>
-                        </Link>
-                        <Link to={schedule.publicId + "/remove"}>
-                          <DropdownMenuItem className="text-destructive">
-                            Remove
-                          </DropdownMenuItem>
-                        </Link>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
+          </>
+        )}
+      </HeaderButtons>
+
+      <div
+        className="flex flex-col items-center"
+        style={{ gridArea: "main-content" }}
+      >
+        <Outlet context={{ user }} />
+        {schedules.length === 0 && (
+          <TableEmptyCard.Spacing>
+            <TableEmptyCard
+              title="No Schedules"
+              description="Upload your first schedule to start tracking your shifts."
+            >
+              <Link to="../uploads/add" relative="path">
+                <Button type="button" variant={"default"}>
+                  Upload a Schedule
+                </Button>
+              </Link>
+              <Link to="add" relative="path">
+                <Button type="button" variant={"default"}>
+                  Add Blank Schedule
+                </Button>
+              </Link>
+            </TableEmptyCard>
+          </TableEmptyCard.Spacing>
+        )}
+        {schedules.length > 0 && (
+          <>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Title</TableHead>
+                  <TableHead>Period</TableHead>
+                  <TableHead className="text-center">Claimed</TableHead>
+                  <TableHead>Location</TableHead>
+                  <TableHead>Created</TableHead>
+                  <TableHead className="text-center">Status</TableHead>
+                  <TableHead />
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-          <TableFooterButtons>
-            <Link to="../uploads/add" relative="path">
-              <Button type="button" variant={"default"}>
-                Upload a Schedule
-              </Button>
-            </Link>
-            <Link to="add" relative="path">
-              <Button type="button" variant={"default"}>
-                Add Blank Schedule
-              </Button>
-            </Link>
-          </TableFooterButtons>
-        </>
-      )}
-    </div>
+              </TableHeader>
+              <TableBody>
+                {schedules.map((schedule) => (
+                  <TableRow key={schedule.publicId}>
+                    <TableCell>{schedule.title}</TableCell>
+                    <TableCell>
+                      {buildPeriod(schedule, user.timeZone)}
+                    </TableCell>
+                    <TableCell className="text-center">
+                      {schedule.numClaimedShifts} / {schedule.numShifts}
+                    </TableCell>
+                    <TableCell>{schedule.location?.title ?? "-"}</TableCell>
+                    <TableCell>{format(schedule.createdAt, "PPp")}</TableCell>
+                    <TableCell className="text-center">
+                      {schedule.isDraft && (
+                        <Badge
+                          variant="outline"
+                          className="text-chart5 border-chart5 bg-chart5/20"
+                        >
+                          Draft
+                        </Badge>
+                      )}
+                      {!schedule.isDraft && (
+                        <Badge
+                          variant="outline"
+                          className="text-chart4 border-chart4 bg-chart4/20"
+                        >
+                          Finalized
+                        </Badge>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="outline" size="icon">
+                            <DotsHorizontalIcon />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent>
+                          {schedule.numClaimedShifts < schedule.numShifts && (
+                            <Link
+                              to={schedule.publicId + "/mark-shifts-claimed"}
+                            >
+                              <DropdownMenuItem>
+                                Mark All Shifts Claimed
+                              </DropdownMenuItem>
+                            </Link>
+                          )}
+                          {schedule.numUnclaimedShifts < schedule.numShifts && (
+                            <Link
+                              to={schedule.publicId + "/mark-shifts-unclaimed"}
+                            >
+                              <DropdownMenuItem>
+                                Mark All Shifts Unclaimed
+                              </DropdownMenuItem>
+                            </Link>
+                          )}
+                          <Link to={schedule.publicId + "/edit"}>
+                            <DropdownMenuItem>Edit</DropdownMenuItem>
+                          </Link>
+                          <Link to={schedule.publicId + "/remove"}>
+                            <DropdownMenuItem className="text-destructive">
+                              Remove
+                            </DropdownMenuItem>
+                          </Link>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </>
+        )}
+      </div>
+    </>
   );
 }
 
