@@ -36,6 +36,7 @@ import { toZonedTime } from "date-fns-tz";
 import { Checkbox } from "@/components/ui/checkbox";
 import { CheckedState } from "@radix-ui/react-checkbox";
 import HeaderButtons from "@/components/HeaderButtons";
+import { cn } from "@/lib/utils";
 
 export const handle = {
   breadcrumb: () => {
@@ -196,23 +197,43 @@ export default function Page() {
     }
   }
 
+  const markAsUnclaimedDisabled = claimedSelectedShifts.length === 0;
+  const markAsClaimedDisabled = unclaimedSelectedShifts.length === 0;
+
   return (
     <>
       <HeaderButtons>
-        {numSelectedShifts > 0 && unclaimedSelectedShifts.length > 0 && (
-          <Link to={"mark-many-claimed?" + searchParams.toString()}>
-            <Button type="button" variant={"default"} size="sm">
-              Mark as Claimed
-            </Button>
-          </Link>
+        {numSelectedShifts > 0 && (
+          <p className="text-sm text-muted-foreground">
+            {numSelectedShifts} selected
+          </p>
         )}
-        {numSelectedShifts > 0 && claimedSelectedShifts.length > 0 && (
-          <Link to={"mark-many-unclaimed?" + searchParams.toString()}>
-            <Button type="button" variant={"default"} size="sm">
-              Mark as Unclaimed
-            </Button>
-          </Link>
-        )}
+        <Link
+          to={"mark-many-claimed?" + searchParams.toString()}
+          className={cn(markAsClaimedDisabled && "pointer-events-none")}
+        >
+          <Button
+            type="button"
+            variant={"default"}
+            size="sm"
+            disabled={markAsClaimedDisabled}
+          >
+            Mark as Claimed
+          </Button>
+        </Link>
+        <Link
+          to={"mark-many-unclaimed?" + searchParams.toString()}
+          className={cn(markAsUnclaimedDisabled && "pointer-events-none")}
+        >
+          <Button
+            type="button"
+            variant={"default"}
+            size="sm"
+            disabled={markAsUnclaimedDisabled}
+          >
+            Mark as Unclaimed
+          </Button>
+        </Link>
       </HeaderButtons>
       <div
         className="flex flex-col items-center"
