@@ -45,6 +45,7 @@ export async function update(
   updateLocation: (options: {
     locationId: number;
     title: string;
+    updatedAt: number;
   }) => Promise<number>,
   user: entities.User,
   options: {
@@ -53,6 +54,8 @@ export async function update(
   },
 ): Promise<Result<string, string>> {
   const title = options.title.trim();
+
+  const updatedAt = Date.now();
 
   const locations = await listLocations({ userId: user.id });
 
@@ -77,6 +80,7 @@ export async function update(
   await updateLocation({
     locationId,
     title,
+    updatedAt,
   });
 
   return ok(location.publicId);
