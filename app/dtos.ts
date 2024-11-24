@@ -31,7 +31,7 @@ export function fromLocationEntity(location: entities.Location): Location {
 export type Schedule = {
   publicId: string;
   createdAt: string; // ISO
-  modifiedAt: string | null;
+  updatedAt: string | null;
   title: string;
   description: string;
   location: Location | null;
@@ -50,7 +50,7 @@ export function fromScheduleEntity(
   return {
     publicId: schedule.publicId,
     createdAt: schedule.createdAt,
-    modifiedAt: schedule.modifiedAt,
+    updatedAt: schedule.updatedAt,
     title: schedule.title,
     description: schedule.description,
     location: location ? fromLocationEntity(location) : null,
@@ -66,7 +66,7 @@ export function fromScheduleEntity(
 export type Shift = {
   publicId: string;
   createdAt: string; // ISO
-  modifiedAt: string | null;
+  updatedAt: string | null;
   title: string;
   description: string;
   location: Location | null;
@@ -86,7 +86,7 @@ export function fromShiftEntity(
   return {
     publicId: shift.publicId,
     createdAt: shift.createdAt,
-    modifiedAt: shift.modifiedAt,
+    updatedAt: shift.updatedAt,
     title: shift.title,
     description: shift.description,
     location: location ? fromLocationEntity(location) : null,

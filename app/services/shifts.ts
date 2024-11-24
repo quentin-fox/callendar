@@ -148,7 +148,7 @@ export async function update(
   listShiftsByUser: (options: { userId: number }) => Promise<entities.Shift[]>,
   updateShift: (options: {
     shiftId: number;
-    modifiedAt: number;
+    updatedAt: number;
     title: string;
     description: string;
     locationId: number;
@@ -229,7 +229,7 @@ export async function update(
   }
 
   const publicShiftId = `shi_${nanoid(12)}`;
-  const modifiedAt = Date.now();
+  const updatedAt = Date.now();
 
   let scheduleId: number | null;
   let locationId: number;
@@ -272,7 +272,7 @@ export async function update(
 
   await updateShift({
     shiftId: shift.id,
-    modifiedAt,
+    updatedAt,
     title: "",
     description: "",
     locationId,

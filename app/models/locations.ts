@@ -46,19 +46,20 @@ RETURNING id;
 
 export async function update(
   db: D1Database,
-  options: { locationId: number; title: string },
+  options: { locationId: number; updatedAt: number; title: string },
 ): Promise<number> {
   const query = `
 UPDATE
   locations
 SET
-  title = ?
+  title = ?,
+  updated_at = ?
 WHERE
   id = ?
 RETURNING id;
 `;
 
-  const parameters = [options.title, options.locationId];
+  const parameters = [options.title, options.updatedAt, options.locationId];
   const result = await db
     .prepare(query)
     .bind(...parameters)

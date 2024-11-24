@@ -4,7 +4,7 @@ type Row = {
   id: number;
   public_id: string;
   created_at: number;
-  modified_at: number | null;
+  updated_at: number | null;
   removed_at: number | null;
   title: string;
   description: string;
@@ -64,8 +64,8 @@ function toEntity(row: Row): entities.Schedule {
     id: row.id,
     publicId: row.public_id,
     createdAt: new Date(row.created_at).toISOString(),
-    modifiedAt:
-      row.modified_at === null ? null : new Date(row.modified_at).toISOString(),
+    updatedAt:
+      row.updated_at === null ? null : new Date(row.updated_at).toISOString(),
     removedAt:
       row.removed_at === null ? null : new Date(row.removed_at).toISOString(),
     title: row.title,
@@ -96,7 +96,7 @@ SELECT
   schedules.id,
   schedules.public_id,
   schedules.created_at,
-  schedules.modified_at,
+  schedules.updated_at,
   schedules.removed_at,
   schedules.title,
   schedules.description,
@@ -169,7 +169,7 @@ SELECT
   schedules.id,
   schedules.public_id,
   schedules.created_at,
-  schedules.modified_at,
+  schedules.updated_at,
   schedules.removed_at,
   schedules.title,
   schedules.description,
@@ -237,19 +237,19 @@ export async function update(
     description: string;
     locationId: number;
     isDraft: boolean;
-    modifiedAt: number;
+    updatedAt: number;
   },
 ): Promise<void> {
   const query = `
 UPDATE schedules
 SET
-  title = $1,
-  description = $2,
-  location_id = $3,
-  is_draft = $4,
-  modified_at = $5
+  title = ?,
+  description = ?,
+  location_id = ?,
+  is_draft = ?,
+  updated_at = ?
 WHERE
-  id = $6;
+  id = ?;
 `;
 
   const parameters = [
@@ -257,7 +257,7 @@ WHERE
     options.description,
     options.locationId,
     options.isDraft,
-    options.modifiedAt,
+    options.updatedAt,
     options.scheduleId,
   ];
 
@@ -277,9 +277,9 @@ export async function remove(
   const query = `
 UPDATE schedules
 SET
-  removed_at = $1
+  removed_at = ?
 WHERE
-  id = $2;
+  id = ?;
 `;
 
   const parameters = [options.removedAt, options.scheduleId];

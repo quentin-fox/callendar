@@ -4,7 +4,7 @@ type Row = {
   id: number;
   public_id: string;
   created_at: number;
-  modified_at: number | null;
+  updated_at: number | null;
   removed_at: number | null;
   title: string;
   description: string;
@@ -137,7 +137,7 @@ export async function update(
   db: D1Database,
   options: {
     shiftId: number;
-    modifiedAt: number;
+    updatedAt: number;
     title: string;
     description: string;
     locationId: number;
@@ -151,7 +151,7 @@ export async function update(
   const query = `
 UPDATE shifts
 SET
-  modified_at = ?,
+  updated_at = ?,
   title = ?,
   description = ?,
   location_id = ?,
@@ -167,7 +167,7 @@ RETURNING id;
   const result = await db
     .prepare(query)
     .bind(
-      options.modifiedAt,
+      options.updatedAt,
       options.title,
       options.description,
       options.locationId,
@@ -192,8 +192,8 @@ function toEntity(row: Row): entities.Shift {
     id: row.id,
     publicId: row.public_id,
     createdAt: new Date(row.created_at).toISOString(),
-    modifiedAt:
-      row.modified_at === null ? null : new Date(row.created_at).toISOString(),
+    updatedAt:
+      row.updated_at === null ? null : new Date(row.created_at).toISOString(),
     removedAt:
       row.removed_at === null ? null : new Date(row.created_at).toISOString(),
     title: row.title,
@@ -216,7 +216,7 @@ SELECT
   id,
   public_id,
   created_at,
-  modified_at,
+  updated_at,
   removed_at,
   title,
   description,
@@ -255,7 +255,7 @@ SELECT
   id,
   public_id,
   created_at,
-  modified_at,
+  updated_at,
   removed_at,
   title,
   description,
@@ -290,7 +290,7 @@ SELECT
   shifts.id,
   shifts.public_id,
   shifts.created_at,
-  shifts.modified_at,
+  shifts.updated_at,
   shifts.removed_at,
   shifts.title,
   shifts.description,

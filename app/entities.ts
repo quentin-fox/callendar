@@ -18,7 +18,7 @@ export type Schedule = {
   id: number;
   publicId: string;
   createdAt: string; // ISO
-  modifiedAt: string | null;
+  updatedAt: string | null;
   removedAt: string | null;
   title: string;
   description: string;
@@ -42,7 +42,7 @@ export type Shift = {
   publicId: string;
   scheduleId: number | null;
   createdAt: string; // ISO
-  modifiedAt: string | null;
+  updatedAt: string | null;
   removedAt: string | null;
   title: string;
   description: string;

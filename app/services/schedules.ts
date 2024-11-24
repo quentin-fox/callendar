@@ -156,7 +156,7 @@ export async function update(
     description: string;
     locationId: number;
     isDraft: boolean;
-    modifiedAt: number;
+    updatedAt: number;
   }) => Promise<void>,
   user: entities.User,
   options: {
@@ -191,7 +191,7 @@ export async function update(
   const title = options.title.trim();
   const description = options.description.trim();
 
-  const modifiedAt = Date.now();
+  const updatedAt = Date.now();
 
   await updateSchedule({
     scheduleId: schedule.id,
@@ -199,7 +199,7 @@ export async function update(
     description,
     locationId: location.id,
     isDraft: options.isDraft,
-    modifiedAt,
+    updatedAt,
   });
 
   return ok(options.publicScheduleId);
