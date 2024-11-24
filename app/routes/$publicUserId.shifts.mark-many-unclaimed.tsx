@@ -5,7 +5,7 @@ import {
   redirect,
 } from "@remix-run/server-runtime";
 
-import { Form, Link, useActionData, useLoaderData } from "@remix-run/react";
+import { Form, useActionData, useLoaderData } from "@remix-run/react";
 import invariant from "tiny-invariant";
 
 import * as models from "@/models";
@@ -109,9 +109,7 @@ export default function Page() {
         </AlertDialogHeader>
         <Form method="POST">
           <AlertDialogFooter>
-            <Link to="..">
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-            </Link>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
             <Button type="submit">Confirm</Button>
           </AlertDialogFooter>
         </Form>

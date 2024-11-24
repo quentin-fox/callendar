@@ -12,7 +12,7 @@ import * as middleware from "@/middleware/index.server";
 import * as dtos from "@/dtos";
 
 import { isError, unwrap } from "@/helpers/result";
-import { Form, Link, useActionData, useLoaderData } from "@remix-run/react";
+import { Form, useActionData, useLoaderData } from "@remix-run/react";
 import { Button } from "@/components/ui/button";
 
 import {
@@ -215,9 +215,7 @@ export default function Page() {
             user={user}
           />
           <AlertDialogFooter>
-            <Link to="../.." relative="path">
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-            </Link>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
             <Button type="submit">Submit</Button>
           </AlertDialogFooter>
         </Form>

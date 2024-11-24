@@ -11,7 +11,7 @@ import * as services from "@/services";
 import * as middleware from "@/middleware/index.server";
 
 import { isError } from "@/helpers/result";
-import { Form, Link, useActionData, useLoaderData } from "@remix-run/react";
+import { Form, useActionData, useLoaderData } from "@remix-run/react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -118,9 +118,7 @@ export default function Page() {
             />
           </fieldset>
           <AlertDialogFooter>
-            <Link to="..">
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-            </Link>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
             <Button type="submit">Submit</Button>
           </AlertDialogFooter>
         </Form>
