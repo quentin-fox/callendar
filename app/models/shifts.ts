@@ -98,7 +98,7 @@ export async function insert(
     .first<{ id: number }>();
 
   if (!result) {
-    throw new Error("Could not insert schedule.");
+    throw new Error("Could not insert shift.");
   }
 
   return result.id;
@@ -131,6 +131,60 @@ export async function insertMany(
   );
 
   return shiftIds;
+}
+
+export async function update(
+  db: D1Database,
+  options: {
+    shiftId: number;
+    modifiedAt: number;
+    title: string;
+    description: string;
+    locationId: number;
+    scheduleId: number | null;
+    start: number;
+    end: number;
+    isAllDay: boolean;
+    claimed: boolean;
+  },
+): Promise<number> {
+  const query = `
+UPDATE shifts
+SET
+  modified_at = ?,
+  title = ?,
+  description = ?,
+  location_id = ?,
+  schedule_id = ?,
+  start = ?,
+  end = ?,
+  is_all_day = ?,
+  claimed = ?
+WHERE id = ?
+RETURNING id;
+  `;
+
+  const result = await db
+    .prepare(query)
+    .bind(
+      options.modifiedAt,
+      options.title,
+      options.description,
+      options.locationId,
+      options.scheduleId,
+      options.start,
+      options.end,
+      options.isAllDay,
+      options.claimed,
+      options.shiftId,
+    )
+    .first<{ id: number }>();
+
+  if (!result) {
+    throw new Error("Could not update shift.");
+  }
+
+  return result.id;
 }
 
 function toEntity(row: Row): entities.Shift {

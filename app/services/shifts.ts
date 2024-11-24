@@ -149,6 +149,175 @@ export async function insert(
   return ok(publicShiftId);
 }
 
+export async function update(
+  listLocations: (options: { userId: number }) => Promise<entities.Location[]>,
+  listSchedules: (options: { userId: number }) => Promise<entities.Schedule[]>,
+  listShiftsByUser: (options: { userId: number }) => Promise<entities.Shift[]>,
+  updateShift: (options: {
+    shiftId: number;
+    modifiedAt: number;
+    title: string;
+    description: string;
+    locationId: number;
+    scheduleId: number | null;
+    start: number;
+    end: number;
+    isAllDay: boolean;
+    claimed: boolean;
+  }) => Promise<number>,
+  user: entities.User,
+  options: {
+    publicShiftId: string;
+    publicLocationId: string | null;
+    publicScheduleId: string | null;
+    shift:
+      | {
+          type: "all-day";
+          date: string;
+        }
+      | {
+          type: "timed";
+          start: string;
+          end: string;
+        };
+    claimed: boolean;
+  },
+): Promise<Result<string, string>> {
+  const shifts = await listShiftsByUser({ userId: user.id });
+
+  const shift = shifts.find((s) => s.publicId === options.publicShiftId);
+
+  if (!shift) {
+    return error("Shift does not exist.");
+  }
+
+  let start: number;
+  let end: number;
+  let isAllDay: boolean;
+
+  if (options.shift.type === "all-day") {
+    // this will give us the start of the day in UTC
+    // i.e. it will actually be 00:00 at UTC
+    const date = parse(options.shift.date, "yyyy-MM-dd", new Date());
+
+    if (!isValid(date)) {
+      return error("Invalid date.");
+    }
+
+    // this will change the timestamp to represent the start date in UTC
+    const zonedStart = toZonedTime(date, user.timeZone);
+
+    // do this once localized... might matter?
+    const zonedEnd = addDays(zonedStart, 1);
+
+    start = zonedStart.getTime();
+    end = zonedEnd.getTime();
+    isAllDay = true;
+  } else {
+    // this will get us the start/end that the user input
+    // but as though we were in UTC
+    // i.e. if they entered 16:00, this will be 16:00 in UTC
+    // since the server runs on UTC
+    const utcStart = parse(
+      options.shift.start,
+      "yyyy-MM-dd'T'HH:mm",
+      new Date(),
+    );
+
+    if (!isValid(utcStart)) {
+      return error("Invalid start.");
+    }
+
+    const utcEnd = parse(options.shift.end, "yyyy-MM-dd'T'HH:mm", new Date());
+
+    if (!isValid(utcEnd)) {
+      return error("Invalid end.");
+    }
+
+    const zonedStart = toZonedTime(utcStart, user.timeZone);
+    const zonedEnd = toZonedTime(utcEnd, user.timeZone);
+
+    start = zonedStart.getTime();
+    end = zonedEnd.getTime();
+    isAllDay = false;
+  }
+
+  const publicShiftId = `shi_${nanoid(12)}`;
+  const modifiedAt = Date.now();
+
+  let scheduleId: number | null;
+  let locationId: number;
+
+  if (options.publicScheduleId && options.publicLocationId) {
+    return error("You cannot give a shift a schedule and a location.");
+  } else if (options.publicScheduleId) {
+    const schedules = await listSchedules({
+      userId: user.id,
+    });
+
+    const schedule = schedules.find(
+      (s) => s.publicId === options.publicScheduleId,
+    );
+
+    if (!schedule) {
+      return error("Schedule does not exist.");
+    }
+
+    scheduleId = schedule.id;
+    locationId = schedule.locationId;
+  } else if (options.publicLocationId) {
+    const locations = await listLocations({
+      userId: user.id,
+    });
+
+    const location = locations.find(
+      (s) => s.publicId === options.publicLocationId,
+    );
+
+    if (!location) {
+      return error("Location does not exist.");
+    }
+
+    locationId = location.id;
+    scheduleId = null;
+  } else {
+    return error("You must give a shift a schedule or a location.");
+  }
+
+  await updateShift({
+    shiftId: shift.id,
+    modifiedAt,
+    title: "",
+    description: "",
+    locationId,
+    scheduleId,
+    start,
+    end,
+    isAllDay,
+    claimed: options.claimed,
+  });
+
+  return ok(publicShiftId);
+}
+
+export async function listOne(
+  listShiftsByUser: (options: { userId: number }) => Promise<entities.Shift[]>,
+  user: entities.User,
+  options: { publicShiftId: string },
+): Promise<Result<entities.Shift, string>> {
+  const shifts = await listShiftsByUser({
+    userId: user.id,
+  });
+
+  const shift = shifts.find((s) => s.publicId === options.publicShiftId);
+
+  if (!shift) {
+    return error("Shift does not exist.");
+  }
+
+  return ok(shift);
+}
+
 export async function listByUser(
   listShiftsByUser: (options: { userId: number }) => Promise<entities.Shift[]>,
   user: entities.User,

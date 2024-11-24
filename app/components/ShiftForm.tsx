@@ -67,10 +67,10 @@ export default function ShiftForm(props: Props) {
       >
         <TabsList className="w-full">
           <TabsTrigger value="schedule" className="flex-1">
-            Add to Schedule
+            Assign to Schedule
           </TabsTrigger>
           <TabsTrigger value="location" className="flex-1">
-            Add to Location
+            Assign to Location
           </TabsTrigger>
         </TabsList>
         <TabsContent value="schedule">

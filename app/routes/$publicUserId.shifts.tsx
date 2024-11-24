@@ -348,6 +348,9 @@ export default function Page() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent>
+                          <Link to={shift.publicId + "/edit"}>
+                            <DropdownMenuItem>Edit</DropdownMenuItem>
+                          </Link>
                           {!shift.claimed && (
                             <Link to={shift.publicId + "/mark-claimed"}>
                               <DropdownMenuItem>Mark Claimed</DropdownMenuItem>

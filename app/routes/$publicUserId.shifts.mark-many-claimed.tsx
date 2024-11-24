@@ -25,6 +25,7 @@ import {
 import { Button } from "@/components/ui/button";
 import ErrorAlert from "@/components/ErrorAlert";
 import RouteAlertDialog from "@/components/RouteAlertDialog";
+import { nanoid } from "nanoid";
 
 export const loader = async ({ params, request }: LoaderFunctionArgs) => {
   const url = new URL(request.url);
@@ -36,12 +37,6 @@ export const loader = async ({ params, request }: LoaderFunctionArgs) => {
 
   if (publicShiftIds.length === 0) {
     return redirect("/" + publicUserId + "/shifts");
-  }
-
-  if (publicShiftIds.length === 1) {
-    return redirect(
-      "/" + publicUserId + "/shifts/" + publicShiftIds[0] + "/mark-claimed",
-    );
   }
 
   return { publicShiftIds };
@@ -83,6 +78,8 @@ export const action = async ({
     ]),
   );
 
+  redirectSearchParams.set("hash", nanoid());
+
   return redirect(
     "/" + user.publicId + "/shifts?" + redirectSearchParams.toString(),
   );
@@ -97,11 +94,14 @@ export default function Page() {
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>
-            Mark {publicShiftIds.length} Shifts Claimed
+            {publicShiftIds.length === 1
+              ? "Mark Shift Claimed"
+              : `Mark ${publicShiftIds.length} Shifts Claimed`}
           </AlertDialogTitle>
           <AlertDialogDescription>
-            Are you sure you want mark these {publicShiftIds.length} shifts as
-            claimed?
+            {publicShiftIds.length === 1
+              ? "Are you sure you want to mark this shift as claimed?"
+              : `Are you sure you want mark these ${publicShiftIds.length} shifts as claimed?`}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <Form method="POST">

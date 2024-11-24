@@ -31,16 +31,44 @@ import { useOutletUserContext } from "@/context";
 
 export const loader = async ({ params, context }: LoaderFunctionArgs) => {
   const user = await middleware.user.middleware({ params, context });
+  const publicShiftId = params.publicShiftId;
+
+  invariant(typeof publicShiftId === "string", "publicShiftId not found");
 
   const { DB } = context.cloudflare.env;
 
   const listLocations = models.locations.list.bind(null, DB);
   const listSchedules = models.schedules.list.bind(null, DB);
+  const listShiftsByUser = models.shifts.listByUser.bind(null, DB);
+
+  // so if the shift doesn't exist, this error is always thrown
+  const shiftResult = await services.shifts
+    .listOne(listShiftsByUser, user, { publicShiftId })
+    .then(unwrap);
 
   const [locationsResult, schedulesResult] = await Promise.all([
     services.locations.list(listLocations, user).then(unwrap),
     services.schedules.list(listSchedules, user).then(unwrap),
   ]);
+
+  const location = shiftResult.locationId
+    ? (locationsResult.find((l) => l.id === shiftResult.locationId) ?? null)
+    : null;
+
+  const schedule = shiftResult.scheduleId
+    ? (schedulesResult.find((s) => s.id === shiftResult.scheduleId) ?? null)
+    : null;
+
+  const scheduleLocation = schedule?.locationId
+    ? (locationsResult.find((l) => l.id === schedule?.locationId) ?? null)
+    : null;
+
+  const shift = dtos.fromShiftEntity(
+    shiftResult,
+    location,
+    schedule,
+    scheduleLocation,
+  );
 
   const locations = locationsResult.map(dtos.fromLocationEntity);
   const schedules = schedulesResult.map((schedule) => {
@@ -49,7 +77,7 @@ export const loader = async ({ params, context }: LoaderFunctionArgs) => {
     return dtos.fromScheduleEntity(schedule, location ?? null);
   });
 
-  return json({ locations, schedules });
+  return json({ shift, locations, schedules });
 };
 
 export const action = async ({
@@ -62,11 +90,15 @@ export const action = async ({
     context,
   });
 
+  const publicShiftId = params.publicShiftId;
+  invariant(typeof publicShiftId === "string", "publicShiftId not found");
+
   const { DB } = context.cloudflare.env;
 
   const listLocations = models.locations.list.bind(null, DB);
   const listSchedules = models.schedules.list.bind(null, DB);
-  const insertShift = models.shifts.insert.bind(null, DB);
+  const listShiftsByUser = models.shifts.listByUser.bind(null, DB);
+  const updateShift = models.shifts.update.bind(null, DB);
 
   const formData = await request.formData();
 
@@ -135,12 +167,14 @@ export const action = async ({
 
   const claimed = claimedStr === "on";
 
-  const result = await services.shifts.insert(
+  const result = await services.shifts.update(
     listLocations,
     listSchedules,
-    insertShift,
+    listShiftsByUser,
+    updateShift,
     user,
     {
+      publicShiftId,
       publicLocationId,
       publicScheduleId,
       shift,
@@ -153,35 +187,35 @@ export const action = async ({
   }
 
   return redirect(
-    "/" + user.publicId + "/shifts?highlightedPublicId=" + result.value,
+    "/" + user.publicId + "/shifts?highlightedPublicId=" + publicShiftId,
   );
 };
 
 export default function Page() {
-  const { schedules, locations } = useLoaderData<typeof loader>();
+  const { shift, schedules, locations } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
 
   const { user } = useOutletUserContext();
 
   return (
-    <RouteAlertDialog onClosePath="../">
+    <RouteAlertDialog onClosePath="../../">
       <AlertDialogContent className="max-w-2xl">
         <AlertDialogHeader>
-          <AlertDialogTitle>Add Shift</AlertDialogTitle>
+          <AlertDialogTitle>Edit Shift</AlertDialogTitle>
           <AlertDialogDescription>
-            Add a shift to an existing schedule or to an existing location as a
-            standalone shift.
+            Edit an existing shift to update its date/time, or to update which
+            schedule/location it belongs to.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <Form method="POST" className="flex flex-col gap-4">
           <ShiftForm
             schedules={schedules}
             locations={locations}
-            shift={null}
+            shift={shift}
             user={user}
           />
           <AlertDialogFooter>
-            <Link to="..">
+            <Link to="../../">
               <AlertDialogCancel>Cancel</AlertDialogCancel>
             </Link>
             <Button type="submit">Submit</Button>
