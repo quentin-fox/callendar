@@ -81,10 +81,17 @@ export default {
           from: { height: "var(--radix-accordion-content-height)" },
           to: { height: "0" },
         },
+        "color-pop": {
+          "0%": {},
+          "5%": { backgroundColor: "hsl(var(--muted) / 0.9)" },
+          "80%": { backgroundColor: "hsl(var(--muted) / 0.9)" },
+          to: {},
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        "color-pop": "color-pop 1.5s ease-out 0.2s",
       },
     },
   },
