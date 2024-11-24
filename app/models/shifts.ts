@@ -9,7 +9,7 @@ type Row = {
   title: string;
   description: string;
   location_id: number;
-  schedule_id: number;
+  schedule_id: number | null;
   start: number;
   end: number;
   is_all_day: number;
@@ -22,7 +22,7 @@ function toParameters(options: {
   title: string;
   description: string;
   locationId: number;
-  scheduleId: number;
+  scheduleId: number | null;
   userId: number;
   start: number;
   end: number;
@@ -84,7 +84,7 @@ export async function insert(
     title: string;
     description: string;
     locationId: number;
-    scheduleId: number;
+    scheduleId: number | null;
     userId: number;
     start: number;
     end: number;
@@ -112,7 +112,7 @@ export async function insertMany(
     title: string;
     description: string;
     locationId: number;
-    scheduleId: number;
+    scheduleId: number | null;
     userId: number;
     start: number;
     end: number;
@@ -247,10 +247,10 @@ SELECT
   shifts.is_all_day,
   shifts.claimed
 FROM
-  shifts JOIN schedules ON shifts.schedule_id = schedules.id
+  shifts
 WHERE
   shifts.removed_at IS NULL
-  AND schedules.user_id = ?
+  AND shifts.user_id = ?
 ORDER BY shifts.start ASC, shifts.id ASC;
 `;
 

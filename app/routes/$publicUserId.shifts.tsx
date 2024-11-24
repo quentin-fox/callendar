@@ -238,6 +238,11 @@ export default function Page() {
             Mark as Unclaimed
           </Button>
         </Link>
+        <Link to={"add"}>
+          <Button type="button" variant={"default"} size="sm">
+            Add a Shift
+          </Button>
+        </Link>
       </HeaderButtons>
       <div
         className="flex flex-col items-center"
