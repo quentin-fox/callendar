@@ -89,6 +89,8 @@ export const action = async ({
   invariant(typeof description == "string", "description not found");
 
   const isDraftStr = formData.get("isDraft");
+  invariant(isDraftStr === "on" || isDraftStr === null, "isDraft not found");
+
   const isDraft = isDraftStr === "on";
 
   const publicLocationId = formData.get("publicLocationId");
