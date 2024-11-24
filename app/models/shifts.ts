@@ -356,7 +356,7 @@ export async function markManyUnclaimed(
 ): Promise<void> {
   const query = `
 UPDATE shifts
-SET claimed = TRUE
+SET claimed = FALSE
 WHERE removed_at IS NULL AND id = $1;
   `;
 

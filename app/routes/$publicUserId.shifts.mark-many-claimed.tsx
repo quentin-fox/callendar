@@ -77,7 +77,10 @@ export const action = async ({
   }
 
   const redirectSearchParams = new URLSearchParams(
-    publicShiftIds.map((publicShiftId) => ["highlightedPublicId", publicShiftId]),
+    publicShiftIds.map((publicShiftId) => [
+      "highlightedPublicId",
+      publicShiftId,
+    ]),
   );
 
   return redirect(

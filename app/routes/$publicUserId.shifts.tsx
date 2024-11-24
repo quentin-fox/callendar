@@ -1,4 +1,4 @@
-import React, { useCallback, useState, useRef } from "react";
+import React, { useCallback, useState, useRef, useEffect } from "react";
 import { unwrap } from "@/helpers/result";
 
 import * as models from "@/models";
@@ -104,11 +104,18 @@ function getAllCheckedState(
 
 function useSelection(
   ids: string[],
+  hash: string,
   initialState: Record<string, boolean> = {},
 ) {
   const [selectedMap, setSelectedMap] = useState(initialState);
 
   const lastSelectedIndexRef = useRef<number>(0); // To track the last selected item
+
+  useEffect(() => {
+    return () => {
+      setSelectedMap({});
+    };
+  }, [hash]);
 
   const onClick = useCallback(
     (event: React.MouseEvent<HTMLButtonElement, MouseEvent>, index: number) => {
@@ -175,8 +182,15 @@ export default function Page() {
 
   const { user } = useOutletUserContext();
 
+  const [searchParams] = useSearchParams();
+
+  const hash = searchParams.get("hash") ?? "initial";
+
   const [publicIdSelectedMap, onClick, allCheckedState, onAllCheckedChange] =
-    useSelection(shifts.map((s) => s.publicId));
+    useSelection(
+      shifts.map((s) => s.publicId),
+      hash,
+    );
 
   const unclaimedSelectedShifts = shifts.filter(
     (s) => publicIdSelectedMap[s.publicId] === true && s.claimed === false,
@@ -199,8 +213,6 @@ export default function Page() {
 
   const markAsUnclaimedDisabled = claimedSelectedShifts.length === 0;
   const markAsClaimedDisabled = unclaimedSelectedShifts.length === 0;
-
-  const [searchParams] = useSearchParams();
 
   const highlightedPublicIds = searchParams.getAll("highlightedPublicId");
 
@@ -290,7 +302,7 @@ export default function Page() {
                   <TableRow
                     className={cn(
                       highlightedPublicIds.includes(shift.publicId) &&
-                        "animate-pop-in",
+                        "animate-color-pop",
                     )}
                     key={shift.publicId}
                   >

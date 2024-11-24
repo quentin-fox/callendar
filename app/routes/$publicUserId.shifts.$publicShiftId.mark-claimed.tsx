@@ -45,7 +45,9 @@ export const action = async ({ params, context }: ActionFunctionArgs) => {
     return json({ error: result.error });
   }
 
-  return redirect("/" + user.publicId + "/shifts");
+  return redirect(
+    "/" + user.publicId + "/shifts?highlightedPublicId=" + publicShiftId,
+  );
 };
 
 export default function Page() {
