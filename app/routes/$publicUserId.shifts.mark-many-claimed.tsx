@@ -76,7 +76,13 @@ export const action = async ({
     return json({ error: result.error });
   }
 
-  return redirect("/" + user.publicId + "/shifts");
+  const redirectSearchParams = new URLSearchParams(
+    publicShiftIds.map((publicShiftId) => ["highlightedPublicId", publicShiftId]),
+  );
+
+  return redirect(
+    "/" + user.publicId + "/shifts?" + redirectSearchParams.toString(),
+  );
 };
 
 export default function Page() {

@@ -143,6 +143,8 @@ export const action = async ({
   invariant(typeof description == "string", "description not found");
 
   const isDraftStr = formData.get("isDraft");
+  invariant(isDraftStr === "on" || isDraftStr === null, "isDraft not found");
+
   const isDraft = isDraftStr === "on";
 
   const shifts: (
@@ -201,8 +203,9 @@ export const action = async ({
     return json({ error: result.error });
   }
 
-  // TODO redirect to the single schedule page
-  return redirect("/" + user.publicId + "/schedules");
+  return redirect(
+    "/" + user.publicId + "/schedules?highlightedPublicId=" + result.value,
+  );
 };
 
 export default function Page() {

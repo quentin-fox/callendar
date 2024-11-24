@@ -6,7 +6,7 @@ import * as services from "@/services";
 import * as dtos from "@/dtos";
 import * as middleware from "@/middleware/index.server";
 
-import { Link, Outlet, useLoaderData } from "@remix-run/react";
+import { Link, Outlet, useLoaderData, useSearchParams } from "@remix-run/react";
 import { json, LoaderFunctionArgs } from "@remix-run/server-runtime";
 
 import {
@@ -189,16 +189,20 @@ export default function Page() {
   const numSelectedShifts =
     unclaimedSelectedShifts.length + claimedSelectedShifts.length;
 
-  const searchParams = new URLSearchParams();
+  const selectedSearchParams = new URLSearchParams();
 
   for (const publicId in publicIdSelectedMap) {
     if (publicIdSelectedMap[publicId]) {
-      searchParams.append("publicShiftId", publicId);
+      selectedSearchParams.append("publicShiftId", publicId);
     }
   }
 
   const markAsUnclaimedDisabled = claimedSelectedShifts.length === 0;
   const markAsClaimedDisabled = unclaimedSelectedShifts.length === 0;
+
+  const [searchParams] = useSearchParams();
+
+  const highlightedPublicIds = searchParams.getAll("highlightedPublicId");
 
   return (
     <>
@@ -209,7 +213,7 @@ export default function Page() {
           </p>
         )}
         <Link
-          to={"mark-many-claimed?" + searchParams.toString()}
+          to={"mark-many-claimed?" + selectedSearchParams.toString()}
           className={cn(markAsClaimedDisabled && "pointer-events-none")}
         >
           <Button
@@ -222,7 +226,7 @@ export default function Page() {
           </Button>
         </Link>
         <Link
-          to={"mark-many-unclaimed?" + searchParams.toString()}
+          to={"mark-many-unclaimed?" + selectedSearchParams.toString()}
           className={cn(markAsUnclaimedDisabled && "pointer-events-none")}
         >
           <Button
@@ -278,7 +282,13 @@ export default function Page() {
               </TableHeader>
               <TableBody>
                 {shifts.map((shift, index) => (
-                  <TableRow key={shift.publicId}>
+                  <TableRow
+                    className={cn(
+                      highlightedPublicIds.includes(shift.publicId) &&
+                        "animate-pop-in",
+                    )}
+                    key={shift.publicId}
+                  >
                     <TableCell className="w-[40px]">
                       <div className="flex items-center justify-start">
                         <Checkbox

@@ -57,7 +57,9 @@ export const action = async ({
     return json({ error: result.error }, { status: 400 });
   }
 
-  return redirect("/" + user.publicId + "/locations");
+  return redirect(
+    "/" + user.publicId + "/locations?highlightedPublicId=" + result.value,
+  );
 };
 
 export default function Page() {

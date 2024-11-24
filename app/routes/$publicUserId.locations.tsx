@@ -1,11 +1,12 @@
 import { isError } from "@/helpers/result";
+import { cn } from "@/lib/utils";
 
 import * as models from "@/models";
 import * as services from "@/services";
 import * as dtos from "@/dtos";
 import * as middleware from "@/middleware/index.server";
 
-import { Link, Outlet, useLoaderData } from "@remix-run/react";
+import { Link, Outlet, useLoaderData, useSearchParams } from "@remix-run/react";
 import { json, LoaderFunctionArgs } from "@remix-run/server-runtime";
 
 import {
@@ -66,6 +67,10 @@ export default function Page() {
 
   const { user } = useOutletUserContext();
 
+  const [searchParams] = useSearchParams();
+
+  const highlightedPublicIds = searchParams.getAll("highlightedPublicId");
+
   return (
     <>
       <HeaderButtons>
@@ -107,7 +112,13 @@ export default function Page() {
               </TableHeader>
               <TableBody>
                 {locations.map((location) => (
-                  <TableRow key={location.publicId}>
+                  <TableRow
+                    className={cn(
+                      highlightedPublicIds.includes(location.publicId) &&
+                        "animate-color-pop",
+                    )}
+                    key={location.publicId}
+                  >
                     <TableCell className="w-64">{location.title}</TableCell>
                     <TableCell>{location.publicId}</TableCell>
                     <TableCell>{format(location.createdAt, "PPp")}</TableCell>

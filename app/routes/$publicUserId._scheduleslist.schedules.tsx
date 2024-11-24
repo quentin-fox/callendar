@@ -5,7 +5,7 @@ import * as services from "@/services";
 import * as dtos from "@/dtos";
 import * as middleware from "@/middleware/index.server";
 
-import { Link, Outlet, useLoaderData } from "@remix-run/react";
+import { Link, Outlet, useLoaderData, useSearchParams } from "@remix-run/react";
 import { json, LoaderFunctionArgs } from "@remix-run/server-runtime";
 
 import {
@@ -32,6 +32,7 @@ import { toZonedTime } from "date-fns-tz";
 
 import { Badge } from "@/components/ui/badge";
 import HeaderButtons from "@/components/HeaderButtons";
+import { cn } from "@/lib/utils";
 
 export const handle = {
   breadcrumb: () => {
@@ -69,6 +70,10 @@ export default function Page() {
   const { schedules } = useLoaderData<typeof loader>();
 
   const { user } = useOutletUserContext();
+
+  const [searchParams] = useSearchParams();
+
+  const highlightedPublicIds = searchParams.getAll("highlightedPublicId");
 
   return (
     <>
@@ -129,7 +134,13 @@ export default function Page() {
               </TableHeader>
               <TableBody>
                 {schedules.map((schedule) => (
-                  <TableRow key={schedule.publicId}>
+                  <TableRow
+                    className={cn(
+                      highlightedPublicIds.includes(schedule.publicId) &&
+                        "animate-color-pop",
+                    )}
+                    key={schedule.publicId}
+                  >
                     <TableCell>{schedule.title}</TableCell>
                     <TableCell>
                       {buildPeriod(schedule, user.timeZone)}
