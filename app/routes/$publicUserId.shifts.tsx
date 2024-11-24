@@ -31,8 +31,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 import { DotsHorizontalIcon } from "@radix-ui/react-icons";
-import { differenceInHours, format } from "date-fns";
-import { toZonedTime } from "date-fns-tz";
+import { differenceInHours } from "date-fns";
+import { formatInTimeZone } from "date-fns-tz";
 import { Checkbox } from "@/components/ui/checkbox";
 import { CheckedState } from "@radix-ui/react-checkbox";
 import HeaderButtons from "@/components/HeaderButtons";
@@ -383,28 +383,22 @@ export default function Page() {
 }
 
 function buildSummary(shift: dtos.Shift, timeZone: string): string {
-  // 24h shift on Nov 12, 2024
-  // 6pm - 10pm on Nov 5, 2024
-  // 6pm - 10pm on Nov 5 - Nov 8, 2024
-
-  const zonedStart = toZonedTime(shift.start, timeZone);
-
-  const zonedEnd = toZonedTime(shift.end, timeZone);
-
   if (shift.isAllDay) {
-    return format(zonedStart, "MMM d, yyyy") + " (all-day)";
+    return (
+      formatInTimeZone(shift.start, timeZone, "MMM d, yyyy") + " (all-day)"
+    );
   }
 
-  const duration = differenceInHours(zonedEnd, zonedStart, {
+  const duration = differenceInHours(shift.end, shift.start, {
     roundingMethod: "floor",
   });
 
   return (
-    format(zonedStart, "MMM d, yyyy") +
+    formatInTimeZone(shift.start, timeZone, "MMM d, yyyy") +
     " (" +
     duration +
     "h at " +
-    format(zonedStart, "h:mm a") +
+    formatInTimeZone(shift.start, timeZone, "h:mm a") +
     ")"
   );
 }

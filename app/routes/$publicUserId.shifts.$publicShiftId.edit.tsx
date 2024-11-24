@@ -198,7 +198,7 @@ export default function Page() {
   const { user } = useOutletUserContext();
 
   return (
-    <RouteAlertDialog onClosePath="../../">
+    <RouteAlertDialog onClosePath="../..">
       <AlertDialogContent className="max-w-2xl">
         <AlertDialogHeader>
           <AlertDialogTitle>Edit Shift</AlertDialogTitle>
@@ -215,7 +215,7 @@ export default function Page() {
             user={user}
           />
           <AlertDialogFooter>
-            <Link to="../../">
+            <Link to="../.." relative="path">
               <AlertDialogCancel>Cancel</AlertDialogCancel>
             </Link>
             <Button type="submit">Submit</Button>

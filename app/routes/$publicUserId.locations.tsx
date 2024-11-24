@@ -32,7 +32,7 @@ import {
 import { DotsHorizontalIcon } from "@radix-ui/react-icons";
 import HeaderButtons from "@/components/HeaderButtons";
 
-import { format } from "date-fns";
+import { formatInTimeZone } from "date-fns-tz";
 
 export const handle = {
   breadcrumb: () => {
@@ -121,7 +121,13 @@ export default function Page() {
                   >
                     <TableCell className="w-64">{location.title}</TableCell>
                     <TableCell>{location.publicId}</TableCell>
-                    <TableCell>{format(location.createdAt, "PPp")}</TableCell>
+                    <TableCell>
+                      {formatInTimeZone(
+                        location.createdAt,
+                        user.timeZone,
+                        "PPp",
+                      )}
+                    </TableCell>
                     <TableCell>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>

@@ -17,8 +17,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { Checkbox } from "@/components/ui/checkbox";
 
-import { toZonedTime } from "date-fns-tz";
-import { format } from "date-fns";
+import { formatInTimeZone } from "date-fns-tz";
 
 type Props = {
   schedules: dtos.Schedule[];
@@ -36,19 +35,21 @@ export default function ShiftForm(props: Props) {
   );
 
   const initialDate = props.shift
-    ? format(toZonedTime(props.shift.start, props.user.timeZone), "yyyy-MM-dd")
+    ? formatInTimeZone(props.shift.start, props.user.timeZone, "yyyy-MM-dd")
     : undefined;
 
   const initialStart = props.shift
-    ? format(
-        toZonedTime(props.shift.start, props.user.timeZone),
+    ? formatInTimeZone(
+        props.shift.start,
+        props.user.timeZone,
         "yyyy-MM-dd'T'HH:mm",
       )
     : undefined;
 
   const initialEnd = props.shift
-    ? format(
-        toZonedTime(props.shift.start, props.user.timeZone),
+    ? formatInTimeZone(
+        props.shift.end,
+        props.user.timeZone,
         "yyyy-MM-dd'T'HH:mm",
       )
     : undefined;

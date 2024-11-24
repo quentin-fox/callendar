@@ -29,8 +29,8 @@ import { Bar, BarChart, CartesianGrid, XAxis } from "recharts";
 
 import { json, LoaderFunctionArgs } from "@remix-run/server-runtime";
 import { useLoaderData } from "@remix-run/react";
-import { toZonedTime } from "date-fns-tz";
-import { addMonths, format, isSameMonth } from "date-fns";
+import { formatInTimeZone } from "date-fns-tz";
+import { addMonths } from "date-fns";
 import { useOutletUserContext } from "@/context";
 
 const chartConfig = {
@@ -88,29 +88,31 @@ export const loader = async ({ context, params }: LoaderFunctionArgs) => {
   // since most schedules aren't known more than 2 months in advance
   // but this gives a good amount of breathing room
 
-  const zonedNow = toZonedTime(now, user.timeZone);
-
   const bins = [
-    addMonths(zonedNow, -5),
-    addMonths(zonedNow, -4),
-    addMonths(zonedNow, -3),
-    addMonths(zonedNow, -2),
-    addMonths(zonedNow, -1),
-    zonedNow,
-    addMonths(zonedNow, 1),
-    addMonths(zonedNow, 2),
+    addMonths(now, -5),
+    addMonths(now, -4),
+    addMonths(now, -3),
+    addMonths(now, -2),
+    addMonths(now, -1),
+    now,
+    addMonths(now, 1),
+    addMonths(now, 2),
   ];
 
   // then for each of these bins, figure out how many shifts start times (zoned) are in the same month as them
   // we can be lazy about this
 
   const byMonth = bins.map((date) => {
-    const label = format(date, "MMM yyyy");
+    const label = formatInTimeZone(date, user.timeZone, "MMM yyyy");
 
     const shiftsInMonth = shifts.filter((shift) => {
-      const zonedStart = toZonedTime(shift.start, user.timeZone);
+      const shiftLabel = formatInTimeZone(
+        shift.start,
+        user.timeZone,
+        "MMM yyyy",
+      );
 
-      return isSameMonth(zonedStart, date);
+      return shiftLabel === label;
     });
 
     const claimed = shiftsInMonth.reduce(
@@ -166,10 +168,7 @@ export default function Page() {
           {stats.nextShiftStart && (
             <p className="text-xs text-muted-foreground">
               next shift on{" "}
-              {format(
-                toZonedTime(stats.nextShiftStart, user.timeZone),
-                "MMM d",
-              )}
+              {formatInTimeZone(stats.nextShiftStart, user.timeZone, "MMM d")}
             </p>
           )}
           {!stats.nextShiftStart && (

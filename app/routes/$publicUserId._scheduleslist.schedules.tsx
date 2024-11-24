@@ -27,8 +27,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { format, isSameDay, isSameMonth, isSameYear } from "date-fns";
-import { toZonedTime } from "date-fns-tz";
+import { isSameDay, isSameMonth, isSameYear } from "date-fns";
+import { formatInTimeZone, toZonedTime } from "date-fns-tz";
 
 import { Badge } from "@/components/ui/badge";
 import HeaderButtons from "@/components/HeaderButtons";
@@ -149,7 +149,13 @@ export default function Page() {
                       {schedule.numClaimedShifts} / {schedule.numShifts}
                     </TableCell>
                     <TableCell>{schedule.location?.title ?? "-"}</TableCell>
-                    <TableCell>{format(schedule.createdAt, "PPp")}</TableCell>
+                    <TableCell>
+                      {formatInTimeZone(
+                        schedule.createdAt,
+                        user.timeZone,
+                        "PPp",
+                      )}
+                    </TableCell>
                     <TableCell className="text-center">
                       {schedule.isDraft && (
                         <Badge
@@ -229,10 +235,14 @@ function buildPeriod(schedule: dtos.Schedule, timeZone: string): string {
   const zonedLastShiftStart = toZonedTime(schedule.lastShiftStart, timeZone);
 
   if (isSameDay(zonedFirstShiftStart, zonedLastShiftStart)) {
-    return format(zonedFirstShiftStart, "PP");
+    return formatInTimeZone(schedule.firstShiftStart, timeZone, "PP");
   }
 
-  const formatter = buildFormatter(zonedFirstShiftStart, zonedLastShiftStart);
+  const formatter = buildFormatter(
+    schedule.firstShiftStart,
+    schedule.lastShiftStart,
+    timeZone,
+  );
 
   if (isSameMonth(zonedFirstShiftStart, zonedLastShiftStart)) {
     const firstFormat = "MMM d"; // Nov 15
@@ -254,12 +264,16 @@ function buildPeriod(schedule: dtos.Schedule, timeZone: string): string {
   return formatter(firstFormat, lastFormat);
 }
 
-function buildFormatter(zonedFirstShiftStart: Date, zonedLastShiftStart: Date) {
+function buildFormatter(
+  firstShiftStart: string,
+  lastShiftStart: string,
+  timeZone: string,
+) {
   return (firstFormat: string, lastFormat: string) => {
     return (
-      format(zonedFirstShiftStart, firstFormat) +
+      formatInTimeZone(firstShiftStart, timeZone, firstFormat) +
       " - " +
-      format(zonedLastShiftStart, lastFormat)
+      formatInTimeZone(lastShiftStart, timeZone, lastFormat)
     );
   };
 }
