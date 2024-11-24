@@ -334,8 +334,8 @@ export default function Page() {
     num: "w-12",
     type: "w-32",
     duration: "w-32",
-    start: "w-[30%]",
-    end: "w-[30%]",
+    start: "w-1/3",
+    end: "w-1/3",
     actions: "w-12",
   };
 

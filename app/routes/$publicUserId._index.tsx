@@ -178,7 +178,7 @@ export default function Page() {
         </CardContent>
       </Card>
       <Card className="hidden md:flex md:col-span-2">
-        <ChartContainer config={chartConfig} className="min-h-[20rem] w-full">
+        <ChartContainer config={chartConfig} className="min-h-80 w-full">
           <BarChart accessibilityLayer data={stats.byMonth}>
             <CartesianGrid vertical={false} />
             <XAxis

@@ -280,7 +280,7 @@ export default function Page() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[40px]">
+                  <TableHead className="w-10">
                     <div className="flex items-center justify-start">
                       <Checkbox
                         id={"selected-all"}
@@ -306,7 +306,7 @@ export default function Page() {
                     )}
                     key={shift.publicId}
                   >
-                    <TableCell className="w-[40px]">
+                    <TableCell className="w-10">
                       <div className="flex items-center justify-start">
                         <Checkbox
                           id={"selected" + shift.publicId}

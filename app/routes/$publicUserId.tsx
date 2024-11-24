@@ -81,7 +81,7 @@ export default function Page() {
 
   return (
     <div className="flex min-h-screen w-full flex-col items-center">
-      <div className="flex flex-col items-stretch w-full md:max-w-[64rem] p-4 gap-4">
+      <div className="flex flex-col items-stretch w-full md:max-w-5xl p-4 gap-4">
         <NavigationBar user={user} />
 
         <main
