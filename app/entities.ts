@@ -53,6 +53,17 @@ export type Shift = {
   claimedAt: string | null;
 };
 
+export type IcsKey = {
+  id: number;
+  publicId: string;
+  userId: number;
+  scheduleId: number | null;
+  createdAt: string; // ISO
+  updatedAt: string | null; // ISO
+  removedAt: string | null; // ISO
+  title: string;
+};
+
 export const validMediaTypes = [
   "image/png",
   "image/jpeg",

@@ -42,7 +42,7 @@ const pages = [
 export default function NavigationBar(props: Props) {
   return (
     <nav className="flex flex-row justify-between h-16 p-4 rounded-lg bg-background">
-      <Link className="flex flex-row gap-3" to={`/${props.user.publicId}`}>
+      <Link className="flex flex-row gap-3" to={`/${props.user.publicId}/home`}>
         <h1 className="text-2xl font-bold">Callendar</h1>
         <Separator orientation="vertical" />
         <h1 className="text-2xl font-bold">{props.user.firstName}</h1>

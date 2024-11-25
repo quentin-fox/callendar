@@ -3,9 +3,10 @@ import { AppLoadContext } from "@remix-run/server-runtime";
 import invariant from "tiny-invariant";
 import { validate } from "uuid";
 
+import * as services from "@/services";
 import * as models from "@/models";
-
 import * as entities from "@/entities";
+
 import { Params } from "@remix-run/react";
 
 export const middleware = async ({
@@ -28,7 +29,9 @@ export const middleware = async ({
 
   const listOneUser = models.users.listOne.bind(null, DB);
 
-  const user: entities.User | null = await listOneUser({ publicUserId });
+  const user = await services.users.listOne(listOneUser, {
+    publicUserId,
+  });
 
   if (!user) {
     throw new Error("User does not exist.");

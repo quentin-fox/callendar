@@ -76,3 +76,45 @@ WHERE
     timeZone: result.time_zone,
   };
 }
+
+export async function internalListOne(
+  db: D1Database,
+  options: { userId: number },
+): Promise<entities.User | null> {
+  const query = `
+SELECT
+  id,
+  public_id,
+  created_at,
+  first_name,
+  time_zone
+FROM
+  users
+WHERE
+  id = ?;
+`;
+
+  const parameters = [options.userId];
+  const result = await db
+    .prepare(query)
+    .bind(...parameters)
+    .first<{
+      id: number;
+      public_id: string;
+      created_at: number;
+      first_name: string;
+      time_zone: string;
+    }>();
+
+  if (!result) {
+    return null;
+  }
+
+  return {
+    id: result.id,
+    publicId: result.public_id,
+    createdAt: new Date(result.created_at).toISOString(),
+    firstName: result.first_name,
+    timeZone: result.time_zone,
+  };
+}

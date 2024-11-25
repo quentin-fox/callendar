@@ -98,6 +98,23 @@ export function fromShiftEntity(
   };
 }
 
+export type IcsKey = {
+  publicId: string;
+  schedule: Schedule | null;
+  title: string;
+};
+
+export function fromIcsKeyEntity(
+  icsKey: entities.IcsKey,
+  schedule: entities.Schedule | null,
+): IcsKey {
+  return {
+    publicId: icsKey.publicId,
+    schedule: schedule ? fromScheduleEntity(schedule, null) : null,
+    title: icsKey.title,
+  };
+}
+
 // these aren't created from entities
 // so they don't need their own mappers
 export type AllDayShiftOutput = {

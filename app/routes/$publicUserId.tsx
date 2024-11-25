@@ -92,7 +92,7 @@ export default function Page() {
             <Breadcrumb>
               <BreadcrumbList>
                 {[
-                  { to: "/" + user.publicId, title: "Home" },
+                  { to: "/home" + user.publicId, title: "Home" },
                   ...breadcrumbs,
                 ].flatMap((breadcrumb, index, list) => [
                   index > 0 && <BreadcrumbSeparator key={`${index}-sep`} />,

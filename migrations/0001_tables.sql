@@ -60,8 +60,8 @@ CREATE TABLE ics_keys (
   schedule_id integer,
   created_at integer not null,
   updated_at integer,
-  removed_at integer
-  title text,
+  removed_at integer,
+  title text not null,
   FOREIGN KEY (user_id) REFERENCES users(id),
   FOREIGN KEY (schedule_id) REFERENCES schedules(id)
 );

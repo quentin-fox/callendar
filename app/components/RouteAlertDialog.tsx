@@ -16,7 +16,10 @@ export default function RouteAlertDialog(props: Props) {
     }
 
     if (navigation.state === "idle") {
-      navigate(props.onClosePath, { relative: "path" });
+      navigate(props.onClosePath, {
+        relative: "path",
+        preventScrollReset: true,
+      });
     }
   };
 
