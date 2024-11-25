@@ -29,7 +29,7 @@ export async function insert(
       start: number;
       end: number;
       isAllDay: boolean;
-      claimed: boolean;
+      claimedAt: number | null;
     }[],
   ) => Promise<number[]>,
   user: entities.User,
@@ -139,7 +139,7 @@ export async function insert(
         start,
         end,
         isAllDay,
-        claimed: false,
+        claimedAt: null,
       };
     }),
   );

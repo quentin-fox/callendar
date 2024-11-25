@@ -13,7 +13,7 @@ type Row = {
   start: number;
   end: number;
   is_all_day: number;
-  claimed: number;
+  claimed_at: number | null;
 };
 
 function toParameters(options: {
@@ -27,7 +27,7 @@ function toParameters(options: {
   start: number;
   end: number;
   isAllDay: boolean;
-  claimed: boolean;
+  claimedAt: number | null;
 }) {
   return [
     options.publicId,
@@ -40,7 +40,7 @@ function toParameters(options: {
     options.start,
     options.end,
     options.isAllDay,
-    options.claimed,
+    options.claimedAt,
   ];
 }
 
@@ -57,7 +57,7 @@ INSERT INTO shifts
     start,
     end,
     is_all_day,
-    claimed
+    claimed_at
   )
 VALUES
   (
@@ -89,7 +89,7 @@ export async function insert(
     start: number;
     end: number;
     isAllDay: boolean;
-    claimed: boolean;
+    claimedAt: number | null;
   },
 ): Promise<number> {
   const result = await db
@@ -117,7 +117,7 @@ export async function insertMany(
     start: number;
     end: number;
     isAllDay: boolean;
-    claimed: boolean;
+    claimedAt: number | null;
   }[],
 ): Promise<number[]> {
   const statement = db.prepare(INSERT_QUERY);
@@ -145,7 +145,7 @@ export async function update(
     start: number;
     end: number;
     isAllDay: boolean;
-    claimed: boolean;
+    claimedAt: number | null;
   },
 ): Promise<number> {
   const query = `
@@ -159,7 +159,7 @@ SET
   start = ?,
   end = ?,
   is_all_day = ?,
-  claimed = ?
+  claimed_at = ?
 WHERE id = ?
 RETURNING id;
   `;
@@ -175,7 +175,7 @@ RETURNING id;
       options.start,
       options.end,
       options.isAllDay,
-      options.claimed,
+      options.claimedAt,
       options.shiftId,
     )
     .first<{ id: number }>();
@@ -195,7 +195,7 @@ function toEntity(row: Row): entities.Shift {
     updatedAt:
       row.updated_at === null ? null : new Date(row.created_at).toISOString(),
     removedAt:
-      row.removed_at === null ? null : new Date(row.created_at).toISOString(),
+      row.removed_at === null ? null : new Date(row.removed_at).toISOString(),
     title: row.title,
     description: row.description,
     locationId: row.location_id,
@@ -203,7 +203,8 @@ function toEntity(row: Row): entities.Shift {
     start: new Date(row.start).toISOString(),
     end: new Date(row.end).toISOString(),
     isAllDay: row.is_all_day === 1,
-    claimed: row.claimed === 1,
+    claimedAt:
+      row.claimed_at === null ? null : new Date(row.claimed_at).toISOString(),
   };
 }
 
@@ -264,7 +265,7 @@ SELECT
   start,
   end,
   is_all_day,
-  claimed
+  claimed_at
 FROM
   shifts
 WHERE
@@ -287,19 +288,19 @@ export async function listByUser(
 ): Promise<entities.Shift[]> {
   const query = `
 SELECT
-  shifts.id,
-  shifts.public_id,
-  shifts.created_at,
-  shifts.updated_at,
-  shifts.removed_at,
-  shifts.title,
-  shifts.description,
-  shifts.location_id,
-  shifts.schedule_id,
-  shifts.start,
-  shifts.end,
-  shifts.is_all_day,
-  shifts.claimed
+  id,
+  public_id,
+  created_at,
+  updated_at,
+  removed_at,
+  title,
+  description,
+  location_id,
+  schedule_id,
+  start,
+  end,
+  is_all_day,
+  claimed_at
 FROM
   shifts
 WHERE
@@ -355,15 +356,15 @@ WHERE removed_at IS NULL AND schedule_id = $1;
 
 export async function markClaimed(
   db: D1Database,
-  options: { shiftId: number },
+  options: { shiftId: number; claimedAt: number },
 ): Promise<void> {
   const query = `
 UPDATE shifts
-SET claimed = TRUE
-WHERE removed_at IS NULL AND id = $1;
+SET claimed_at = ?
+WHERE removed_at IS NULL AND id = ?;
   `;
 
-  const parameters = [options.shiftId];
+  const parameters = [options.claimedAt, options.shiftId];
 
   await db
     .prepare(query)
@@ -377,8 +378,8 @@ export async function markUnclaimed(
 ): Promise<void> {
   const query = `
 UPDATE shifts
-SET claimed = FALSE
-WHERE removed_at IS NULL AND id = $1;
+SET claimed_at = NULL
+WHERE removed_at IS NULL AND id = ?;
   `;
 
   const parameters = [options.shiftId];
@@ -391,17 +392,21 @@ WHERE removed_at IS NULL AND id = $1;
 
 export async function markManyClaimed(
   db: D1Database,
-  options: { shiftIds: number[] },
+  options: { shiftIds: number[]; claimedAt: number },
 ): Promise<void> {
   const query = `
 UPDATE shifts
-SET claimed = TRUE
-WHERE removed_at IS NULL AND id = $1;
+SET claimed_at = ?
+WHERE removed_at IS NULL AND id = ?;
   `;
 
   const statement = db.prepare(query);
 
-  await db.batch(options.shiftIds.map((shiftId) => statement.bind(shiftId)));
+  await db.batch(
+    options.shiftIds.map((shiftId) =>
+      statement.bind(options.claimedAt, shiftId),
+    ),
+  );
 }
 
 export async function markManyUnclaimed(
@@ -410,8 +415,8 @@ export async function markManyUnclaimed(
 ): Promise<void> {
   const query = `
 UPDATE shifts
-SET claimed = FALSE
-WHERE removed_at IS NULL AND id = $1;
+SET claimed_at = NULL
+WHERE removed_at IS NULL AND id = ?;
   `;
 
   const statement = db.prepare(query);
@@ -421,15 +426,15 @@ WHERE removed_at IS NULL AND id = $1;
 
 export async function markClaimedBySchedule(
   db: D1Database,
-  options: { scheduleId: number },
+  options: { scheduleId: number; claimedAt: number },
 ): Promise<void> {
   const query = `
 UPDATE shifts
-SET claimed = TRUE
-WHERE removed_at IS NULL AND schedule_id = $1;
+SET claimed_at = ?
+WHERE removed_at IS NULL AND schedule_id = ?;
   `;
 
-  const parameters = [options.scheduleId];
+  const parameters = [options.claimedAt, options.scheduleId];
 
   await db
     .prepare(query)
@@ -443,8 +448,8 @@ export async function markUnclaimedBySchedule(
 ): Promise<void> {
   const query = `
 UPDATE shifts
-SET claimed = FALSE
-WHERE removed_at IS NULL AND schedule_id = $1;
+SET claimed_at = NULL
+WHERE removed_at IS NULL AND schedule_id = ?;
   `;
 
   const parameters = [options.scheduleId];

@@ -193,11 +193,11 @@ export default function Page() {
     );
 
   const unclaimedSelectedShifts = shifts.filter(
-    (s) => publicIdSelectedMap[s.publicId] === true && s.claimed === false,
+    (s) => publicIdSelectedMap[s.publicId] === true && s.claimedAt === null,
   );
 
   const claimedSelectedShifts = shifts.filter(
-    (s) => publicIdSelectedMap[s.publicId] === true && s.claimed,
+    (s) => publicIdSelectedMap[s.publicId] === true && s.claimedAt !== null,
   );
 
   const numSelectedShifts =
@@ -323,7 +323,7 @@ export default function Page() {
                     <TableCell>{shift.schedule?.title ?? "-"}</TableCell>
                     <TableCell>{shift.location?.title ?? "-"}</TableCell>
                     <TableCell className="text-center">
-                      {shift.claimed && (
+                      {shift.claimedAt !== null && (
                         <Badge
                           variant="outline"
                           className="text-chart1 border-chart1 bg-chart1/20"
@@ -331,7 +331,7 @@ export default function Page() {
                           Claimed
                         </Badge>
                       )}
-                      {!shift.claimed && (
+                      {shift.claimedAt === null && (
                         <Badge
                           variant="outline"
                           className="text-chart3 border-chart3 bg-chart3/20"
@@ -351,12 +351,12 @@ export default function Page() {
                           <Link to={shift.publicId + "/edit"}>
                             <DropdownMenuItem>Edit</DropdownMenuItem>
                           </Link>
-                          {!shift.claimed && (
+                          {shift.claimedAt === null && (
                             <Link to={shift.publicId + "/mark-claimed"}>
                               <DropdownMenuItem>Mark Claimed</DropdownMenuItem>
                             </Link>
                           )}
-                          {shift.claimed && (
+                          {shift.claimedAt !== null && (
                             <Link to={shift.publicId + "/mark-unclaimed"}>
                               <DropdownMenuItem>
                                 Mark Unclaimed

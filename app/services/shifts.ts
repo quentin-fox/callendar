@@ -20,7 +20,7 @@ export async function insert(
     start: number;
     end: number;
     isAllDay: boolean;
-    claimed: boolean;
+    claimedAt: number | null;
   }) => Promise<number>,
   user: entities.User,
   options: {
@@ -42,6 +42,8 @@ export async function insert(
   let start: number;
   let end: number;
   let isAllDay: boolean;
+
+  const claimedAt = options.claimed ? Date.now() : null;
 
   if (options.shift.type === "all-day") {
     // this will give us the start of the day in UTC
@@ -136,7 +138,7 @@ export async function insert(
     start,
     end,
     isAllDay,
-    claimed: options.claimed,
+    claimedAt,
   });
 
   return ok(publicShiftId);
@@ -156,7 +158,7 @@ export async function update(
     start: number;
     end: number;
     isAllDay: boolean;
-    claimed: boolean;
+    claimedAt: number | null;
   }) => Promise<number>,
   user: entities.User,
   options: {
@@ -176,6 +178,8 @@ export async function update(
     claimed: boolean;
   },
 ): Promise<Result<string, string>> {
+  const claimedAt = options.claimed ? Date.now() : null;
+
   const shifts = await listShiftsByUser({ userId: user.id });
 
   const shift = shifts.find((s) => s.publicId === options.publicShiftId);
@@ -280,7 +284,7 @@ export async function update(
     start,
     end,
     isAllDay,
-    claimed: options.claimed,
+    claimedAt,
   });
 
   return ok(publicShiftId);
@@ -375,12 +379,17 @@ export async function remove(
 
 export async function markClaimed(
   listShiftsByUser: (options: { userId: number }) => Promise<entities.Shift[]>,
-  markShiftClaimed: (options: { shiftId: number }) => Promise<void>,
+  markShiftClaimed: (options: {
+    shiftId: number;
+    claimedAt: number;
+  }) => Promise<void>,
   user: entities.User,
   options: {
     publicShiftId: string;
   },
 ): Promise<Result<string, string>> {
+  const claimedAt = Date.now();
+
   const shifts = await listShiftsByUser({
     userId: user.id,
   });
@@ -391,7 +400,7 @@ export async function markClaimed(
     return error("Shift does not exist.");
   }
 
-  await markShiftClaimed({ shiftId: shift.id });
+  await markShiftClaimed({ shiftId: shift.id, claimedAt });
 
   return ok(options.publicShiftId);
 }
@@ -421,12 +430,17 @@ export async function markUnclaimed(
 
 export async function markManyClaimed(
   listShiftsByUser: (options: { userId: number }) => Promise<entities.Shift[]>,
-  markManyShiftsClaimed: (options: { shiftIds: number[] }) => Promise<void>,
+  markManyShiftsClaimed: (options: {
+    shiftIds: number[];
+    claimedAt: number;
+  }) => Promise<void>,
   user: entities.User,
   options: {
     publicShiftIds: string[];
   },
 ): Promise<Result<string[], string>> {
+  const claimedAt = Date.now();
+
   const shifts = await listShiftsByUser({
     userId: user.id,
   });
@@ -441,7 +455,7 @@ export async function markManyClaimed(
     return error("One or more shifts do not exist.");
   }
 
-  await markManyShiftsClaimed({ shiftIds });
+  await markManyShiftsClaimed({ shiftIds, claimedAt });
 
   return ok(options.publicShiftIds);
 }
@@ -477,12 +491,15 @@ export async function markClaimedBySchedule(
   listSchedules: (options: { userId: number }) => Promise<entities.Schedule[]>,
   markShiftClaimedBySchedule: (options: {
     scheduleId: number;
+    claimedAt: number;
   }) => Promise<void>,
   user: entities.User,
   options: {
     publicScheduleId: string;
   },
 ): Promise<Result<string, string>> {
+  const claimedAt = Date.now();
+
   const schedules = await listSchedules({
     userId: user.id,
   });
@@ -495,7 +512,7 @@ export async function markClaimedBySchedule(
     return error("Schedule does not exist.");
   }
 
-  await markShiftClaimedBySchedule({ scheduleId: schedule.id });
+  await markShiftClaimedBySchedule({ scheduleId: schedule.id, claimedAt });
 
   return ok(options.publicScheduleId);
 }

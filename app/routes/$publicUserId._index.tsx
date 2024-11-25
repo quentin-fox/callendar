@@ -116,7 +116,7 @@ export const loader = async ({ context, params }: LoaderFunctionArgs) => {
     });
 
     const claimed = shiftsInMonth.reduce(
-      (prev, curr) => (curr.claimed ? prev + 1 : prev),
+      (prev, curr) => (curr.claimedAt ? prev + 1 : prev),
       0,
     );
 

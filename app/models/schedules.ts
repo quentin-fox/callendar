@@ -116,7 +116,7 @@ SELECT
     WHERE
       shifts.schedule_id = schedules.id
       AND shifts.removed_at IS NULL
-      AND shifts.claimed = 1
+      AND shifts.claimed_at IS NOT NULL
   ) as "num_claimed_shifts",
   (
     SELECT COUNT(*)
@@ -124,7 +124,7 @@ SELECT
     WHERE
       shifts.schedule_id = schedules.id
       AND shifts.removed_at IS NULL
-      AND shifts.claimed = 0
+      AND shifts.claimed_at IS NULL
   ) as "num_unclaimed_shifts",
   (
     SELECT MIN(shifts.start)
@@ -189,7 +189,7 @@ SELECT
     WHERE
       shifts.schedule_id = schedules.id
       AND shifts.removed_at IS NULL
-      AND shifts.claimed = 1
+      AND shifts.claimed_at IS NOT NULL
   ) as "num_claimed_shifts",
   (
     SELECT COUNT(*)
@@ -197,7 +197,7 @@ SELECT
     WHERE
       shifts.schedule_id = schedules.id
       AND shifts.removed_at IS NULL
-      AND shifts.claimed = 0
+      AND shifts.claimed_at IS NULL
   ) as "num_unclaimed_shifts",
   (
     SELECT MIN(shifts.start)

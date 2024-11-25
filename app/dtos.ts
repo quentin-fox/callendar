@@ -74,7 +74,7 @@ export type Shift = {
   start: string; // ISO
   end: string; // ISO
   isAllDay: boolean;
-  claimed: boolean;
+  claimedAt: string | null;
 };
 
 export function fromShiftEntity(
@@ -94,7 +94,7 @@ export function fromShiftEntity(
     start: shift.start,
     end: shift.end,
     isAllDay: shift.isAllDay,
-    claimed: shift.claimed,
+    claimedAt: shift.claimedAt,
   };
 }
 

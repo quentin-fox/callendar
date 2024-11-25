@@ -192,7 +192,7 @@ export default function ShiftForm(props: Props) {
         <Checkbox
           id="claimed"
           name="claimed"
-          defaultChecked={props.shift?.claimed ?? false}
+          defaultChecked={!!props.shift?.claimedAt ?? false}
         />
         <div className="grid gap-1.5 leading-none">
           <label

@@ -1,4 +1,5 @@
 import { isError, unwrap } from "@/helpers/result";
+import { cn } from "@/lib/utils";
 
 import * as services from "@/services";
 import * as dtos from "@/dtos";
@@ -49,9 +50,7 @@ import { DotsHorizontalIcon } from "@radix-ui/react-icons";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Separator } from "@/components/ui/separator";
 import TableEmptyCard from "@/components/TableEmptyCard";
-import { cn } from "@/lib/utils";
 import TableFooterButtons from "@/components/TableFooterButtons";
 
 export const handle = {
@@ -341,7 +340,6 @@ export default function Page() {
 
   return (
     <>
-      <Separator />
       <Form method="POST" className="flex flex-col gap-4">
         <Input type="hidden" name="numShifts" value={shifts.length} readOnly />
 

@@ -48,7 +48,7 @@ CREATE TABLE shifts (
   start integer not null,
   end integer not null,
   is_all_day boolean not null,
-  claimed boolean not null,
+  claimed_at integer,
   FOREIGN KEY (schedule_id) REFERENCES schedules(id),
   FOREIGN KEY (location_id) REFERENCES locations(id)
 );
