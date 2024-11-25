@@ -52,6 +52,8 @@
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20240729.0",
     "@remix-run/dev": "^2.10.3",
+    "@remix-run/fs-routes": "^2.15.0",
+    "@remix-run/route-config": "^2.15.0",
     "@types/react": "^18.2.20",
     "@types/react-dom": "^18.2.7",
     "@types/uuid": "^10.0.0",
