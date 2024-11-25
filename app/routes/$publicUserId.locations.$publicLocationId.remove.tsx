@@ -1,4 +1,4 @@
-import { ActionFunctionArgs, json, redirect } from "@remix-run/server-runtime";
+import { ActionFunctionArgs, redirect } from "@remix-run/server-runtime";
 
 import { Form, useActionData } from "@remix-run/react";
 import invariant from "tiny-invariant";
@@ -46,7 +46,7 @@ export const action = async ({ params, context }: ActionFunctionArgs) => {
   );
 
   if (isError(result)) {
-    return json({ error: result.error });
+    return { error: result.error };
   }
 
   return redirect("/" + user.publicId + "/locations");

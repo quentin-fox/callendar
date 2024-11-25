@@ -1,8 +1,7 @@
 import {
   ActionFunctionArgs,
-  json,
-  LoaderFunctionArgs,
   redirect,
+  LoaderFunctionArgs,
 } from "@remix-run/server-runtime";
 
 import { Form, useActionData, useLoaderData } from "@remix-run/react";
@@ -71,7 +70,7 @@ export const action = async ({
   );
 
   if (isError(result)) {
-    return json({ error: result.error });
+    return { error: result.error };
   }
 
   const redirectSearchParams = new URLSearchParams(

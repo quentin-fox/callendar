@@ -7,7 +7,7 @@ import * as dtos from "@/dtos";
 import * as middleware from "@/middleware/index.server";
 
 import { Link, Outlet, useLoaderData, useSearchParams } from "@remix-run/react";
-import { json, LoaderFunctionArgs } from "@remix-run/server-runtime";
+import { LoaderFunctionArgs } from "@remix-run/server-runtime";
 
 import {
   Table,
@@ -83,7 +83,7 @@ export const loader = async ({ context, params }: LoaderFunctionArgs) => {
     );
   });
 
-  return json({ shifts });
+  return { shifts };
 };
 
 function getAllCheckedState(

@@ -27,7 +27,7 @@ import {
 } from "@/components/ui/chart";
 import { Bar, BarChart, CartesianGrid, XAxis } from "recharts";
 
-import { json, LoaderFunctionArgs } from "@remix-run/server-runtime";
+import { LoaderFunctionArgs } from "@remix-run/server-runtime";
 import { useLoaderData } from "@remix-run/react";
 import { formatInTimeZone } from "date-fns-tz";
 import { addMonths } from "date-fns";
@@ -137,7 +137,7 @@ export const loader = async ({ context, params }: LoaderFunctionArgs) => {
     byMonth,
   };
 
-  return json({ stats });
+  return { stats };
 };
 
 export default function Page() {

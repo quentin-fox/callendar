@@ -1,4 +1,4 @@
-import { json, LoaderFunctionArgs } from "@remix-run/server-runtime";
+import { LoaderFunctionArgs } from "@remix-run/server-runtime";
 
 import { middleware } from "@/middleware/user.server";
 
@@ -9,5 +9,5 @@ export const loader = async (args: LoaderFunctionArgs) => {
 
   const user: dtos.User = dtos.fromUserEntity(userResult);
 
-  return json({ user });
+  return { user };
 };

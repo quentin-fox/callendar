@@ -7,7 +7,6 @@ import * as adapters from "@/adapters";
 
 import {
   ActionFunctionArgs,
-  json,
   unstable_createMemoryUploadHandler,
   unstable_parseMultipartFormData,
 } from "@remix-run/server-runtime";
@@ -67,23 +66,23 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   });
 
   if (isError(result)) {
-    return json({
+    return {
       shifts: null,
       receivedAt: Date.now(),
       error: result.error.join("\n"),
-    });
+    };
   }
 
   if (result.value.length === 0) {
-    return json({
+    return {
       shifts: null,
       receivedAt: Date.now(),
       error: "No shifts could be created. Please try uploading another image.",
-    });
+    };
   }
 
   const shifts: (dtos.AllDayShiftOutput | dtos.TimedShiftOutput)[] =
     result.value;
 
-  return json({ shifts, receivedAt: Date.now(), error: null });
+  return { shifts, receivedAt: Date.now(), error: null };
 };

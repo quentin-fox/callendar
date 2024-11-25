@@ -1,6 +1,5 @@
 import {
   ActionFunctionArgs,
-  json,
   LoaderFunctionArgs,
   redirect,
 } from "@remix-run/server-runtime";
@@ -77,7 +76,7 @@ export const loader = async ({ params, context }: LoaderFunctionArgs) => {
     return dtos.fromScheduleEntity(schedule, location ?? null);
   });
 
-  return json({ shift, locations, schedules });
+  return { shift, locations, schedules };
 };
 
 export const action = async ({
@@ -183,7 +182,7 @@ export const action = async ({
   );
 
   if (isError(result)) {
-    return json({ error: result.error });
+    return { error: result.error };
   }
 
   return redirect(

@@ -1,9 +1,8 @@
 import { Form, useActionData } from "@remix-run/react";
 import {
   ActionFunctionArgs,
-  json,
-  LoaderFunctionArgs,
   redirect,
+  LoaderFunctionArgs,
 } from "@remix-run/server-runtime";
 
 import invariant from "tiny-invariant";
@@ -65,7 +64,7 @@ export const action = async ({ request, context }: ActionFunctionArgs) => {
   });
 
   if (isError(result)) {
-    return json({ error: result.error });
+    return { error: result.error };
   }
 
   const publicId = result.value;

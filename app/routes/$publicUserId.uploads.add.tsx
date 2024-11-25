@@ -11,7 +11,6 @@ import * as adapters from "@/adapters";
 
 import {
   ActionFunctionArgs,
-  json,
   LoaderFunctionArgs,
   redirect,
   unstable_createMemoryUploadHandler,
@@ -65,7 +64,7 @@ export const loader = async ({ context, params }: LoaderFunctionArgs) => {
 
   const locations: dtos.Location[] = result.value.map(dtos.fromLocationEntity);
 
-  return json({ locations });
+  return { locations };
 };
 
 export const action = async ({ request }: ActionFunctionArgs) => {
@@ -121,13 +120,13 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   });
 
   if (isError(result)) {
-    return json({ error: result.error.join("\n") });
+    return { error: result.error.join("\n") };
   }
 
   if (result.value.length === 0) {
-    return json({
+    return {
       error: "No shifts could be created. Please try uploading another image.",
-    });
+    };
   }
 
   const shifts: (dtos.AllDayShiftOutput | dtos.TimedShiftOutput)[] =

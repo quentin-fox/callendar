@@ -8,9 +8,8 @@ import * as models from "@/models";
 
 import {
   ActionFunctionArgs,
-  json,
-  LoaderFunctionArgs,
   redirect,
+  LoaderFunctionArgs,
 } from "@remix-run/server-runtime";
 
 import invariant from "tiny-invariant";
@@ -105,7 +104,7 @@ export const loader = async ({
     }
   }
 
-  return json({ locations, initialShifts });
+  return { locations, initialShifts };
 };
 
 export const action = async ({
@@ -199,7 +198,7 @@ export const action = async ({
   );
 
   if (isError(result)) {
-    return json({ error: result.error });
+    return { error: result.error };
   }
 
   return redirect(

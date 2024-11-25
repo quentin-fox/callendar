@@ -13,19 +13,19 @@ import NavigationBar from "@/components/NavigationBar";
 import * as dtos from "@/dtos";
 import * as middleware from "@/middleware/index.server";
 
-import { json, LoaderFunctionArgs } from "@remix-run/server-runtime";
-import { userIdCookie } from "@/cookies.server";
+import { LoaderFunctionArgs } from "@remix-run/server-runtime";
+// import { userIdCookie } from "@/cookies.server";
 
 export const loader = async (args: LoaderFunctionArgs) => {
   const userResult = await middleware.user.middleware(args);
 
   const user: dtos.User = dtos.fromUserEntity(userResult);
 
-  const headers = new Headers({
-    "Set-Cookie": await userIdCookie.serialize(user.publicId),
-  });
+  // const headers = new Headers({
+  //   "Set-Cookie": await userIdCookie.serialize(user.publicId),
+  // });
 
-  return json({ user }, { headers });
+  return { user };
 };
 
 function parseBreadcrumbObject(

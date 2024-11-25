@@ -1,4 +1,4 @@
-import { ActionFunctionArgs, json, redirect } from "@remix-run/server-runtime";
+import { ActionFunctionArgs, redirect } from "@remix-run/server-runtime";
 import invariant from "tiny-invariant";
 
 import * as models from "@/models";
@@ -54,7 +54,7 @@ export const action = async ({
   );
 
   if (isError(result)) {
-    return json({ error: result.error }, { status: 400 });
+    return { error: result.error };
   }
 
   return redirect(

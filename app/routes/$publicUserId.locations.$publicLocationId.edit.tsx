@@ -1,6 +1,5 @@
 import {
   ActionFunctionArgs,
-  json,
   LoaderFunctionArgs,
   redirect,
 } from "@remix-run/server-runtime";
@@ -49,7 +48,7 @@ export const loader = async ({ params, context }: LoaderFunctionArgs) => {
 
   const location = result.value;
 
-  return json({ location });
+  return { location };
 };
 
 export const action = async ({
@@ -87,7 +86,7 @@ export const action = async ({
   );
 
   if (isError(result)) {
-    return json({ error: result.error }, { status: 400 });
+    return { error: result.error };
   }
 
   return redirect("/" + user.publicId + "/locations");
