@@ -69,7 +69,7 @@ export async function listOne(
   options: {
     publicIcsKeyId: string;
   },
-): Promise<entities.IcsKey> {
+): Promise<entities.IcsKey | null> {
   const query = `
 SELECT
   id,
@@ -95,7 +95,7 @@ WHERE
     .first<Row>();
 
   if (!result) {
-    throw new Error("Could not find ics key.");
+    return null;
   }
 
   return toEntity(result);

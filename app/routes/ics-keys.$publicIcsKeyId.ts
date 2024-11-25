@@ -22,6 +22,24 @@ export const loader = async ({ params, context }: LoaderFunctionArgs) => {
     .listOne(listOneIcsKey, null, { publicIcsKeyId })
     .then(unwrap);
 
+  if (!icsKeyResult) {
+    const empty = `BEGIN:VCALENDAR
+VERSION:2.0
+CALSCALE:GREGORIAN
+PRODID:callendar/ics
+METHOD:PUBLISH
+X-PUBLISHED-TTL:PT1H
+END:VCALENDAR`;
+    const response = new Response(empty, {
+      headers: {
+        "Content-Type": "text/calendar; charset=utf-8",
+        "Content-Disposition": "attachment; filename=calendar.ics",
+      },
+    });
+
+    return response;
+  }
+
   const internalListOneUser = await models.users.internalListOne.bind(null, DB);
 
   const userResult = await services.users

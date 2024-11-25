@@ -97,10 +97,10 @@ export async function list(
 export async function listOne(
   listOneIcsKey: (options: {
     publicIcsKeyId: string;
-  }) => Promise<entities.IcsKey>,
+  }) => Promise<entities.IcsKey | null>,
   user: null, // no user, since is not an authenticated request
   options: { publicIcsKeyId: string },
-): Promise<Result<entities.IcsKey, string>> {
+): Promise<Result<entities.IcsKey | null, string>> {
   const icsKeys = await listOneIcsKey({
     publicIcsKeyId: options.publicIcsKeyId,
   });
