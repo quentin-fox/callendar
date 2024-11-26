@@ -55,7 +55,7 @@ export async function insert(
 export async function remove(
   listOneIcsKey: (options: {
     publicIcsKeyId: string;
-  }) => Promise<entities.IcsKey>,
+  }) => Promise<entities.IcsKey | null>,
   removeIcsKey: (options: {
     icsKeyId: number;
     removedAt: number;
@@ -70,6 +70,10 @@ export async function remove(
   const icsKey = await listOneIcsKey({
     publicIcsKeyId: options.publicIcsKeyId,
   });
+
+  if (!icsKey) {
+    return error("This ics key does not exist.");
+  }
 
   if (icsKey.userId !== user.id) {
     return error("This ics key does not exist.");

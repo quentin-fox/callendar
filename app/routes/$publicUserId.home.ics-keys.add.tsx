@@ -1,7 +1,7 @@
+import { useEffect } from "react";
 import {
   ActionFunctionArgs,
   LoaderFunctionArgs,
-  redirect,
 } from "@remix-run/server-runtime";
 import invariant from "tiny-invariant";
 
@@ -10,8 +10,13 @@ import * as services from "@/services";
 import * as middleware from "@/middleware/index.server";
 import * as dtos from "@/dtos";
 
-import { isError, unwrap } from "@/helpers/result";
-import { Form, useActionData, useLoaderData } from "@remix-run/react";
+import { isError, isOk, unwrap } from "@/helpers/result";
+import {
+  Form,
+  useActionData,
+  useLoaderData,
+  useNavigate,
+} from "@remix-run/react";
 import { Button } from "@/components/ui/button";
 
 import {
@@ -94,16 +99,24 @@ export const action = async ({
     },
   );
 
-  if (isError(result)) {
-    return { error: result.error };
-  }
-
-  return redirect("/" + user.publicId + "/home");
+  return result;
 };
 
 export default function Page() {
   const { schedules } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
+
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!actionData) {
+      return;
+    }
+
+    if (isOk(actionData)) {
+      navigate("../", { preventScrollReset: true });
+    }
+  }, [actionData, navigate]);
 
   return (
     <RouteAlertDialog onClosePath="../../">
@@ -142,7 +155,9 @@ export default function Page() {
             <Button type="submit">Submit</Button>
           </AlertDialogFooter>
         </Form>
-        {actionData?.error && <ErrorAlert error={actionData.error} />}
+        {!!actionData && isError(actionData) && (
+          <ErrorAlert error={actionData.error} />
+        )}
       </AlertDialogContent>
     </RouteAlertDialog>
   );

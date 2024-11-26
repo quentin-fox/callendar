@@ -1,6 +1,6 @@
-import { ActionFunctionArgs, redirect } from "@remix-run/server-runtime";
+import { ActionFunctionArgs } from "@remix-run/server-runtime";
 
-import { Form, useActionData } from "@remix-run/react";
+import { Form, useActionData, useNavigate } from "@remix-run/react";
 import invariant from "tiny-invariant";
 
 import * as models from "@/models";
@@ -8,7 +8,7 @@ import * as services from "@/services";
 
 import * as middleware from "@/middleware/index.server";
 
-import { isError } from "@/helpers/result";
+import { isOk } from "@/helpers/result";
 
 import {
   AlertDialogContent,
@@ -21,6 +21,7 @@ import {
 import { Button } from "@/components/ui/button";
 import ErrorAlert from "@/components/ErrorAlert";
 import RouteAlertDialog from "@/components/RouteAlertDialog";
+import { useEffect } from "react";
 
 export const action = async ({ params, context }: ActionFunctionArgs) => {
   const user = await middleware.user.middleware({
@@ -45,15 +46,23 @@ export const action = async ({ params, context }: ActionFunctionArgs) => {
     },
   );
 
-  if (isError(result)) {
-    return { error: result.error };
-  }
-
-  return redirect("/" + user.publicId + "/home");
+  return result;
 };
 
 export default function Page() {
   const actionData = useActionData<typeof action>();
+
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!actionData) {
+      return;
+    }
+
+    if (isOk(actionData)) {
+      navigate("../../", { preventScrollReset: true });
+    }
+  }, [actionData, navigate]);
 
   return (
     <RouteAlertDialog onClosePath="../../">
