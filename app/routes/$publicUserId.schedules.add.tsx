@@ -436,12 +436,6 @@ export default function Page() {
                     if (shift.type === "all-day") {
                       return (
                         <TableRow key={index}>
-                          <Input
-                            type="hidden"
-                            name={`type-${index}`}
-                            value={shift.type}
-                            readOnly
-                          />
                           <TableCell className={COLUMN_CLASSES.num}>
                             {index + 1}
                           </TableCell>
@@ -471,6 +465,12 @@ export default function Page() {
                             -
                           </TableCell>
                           <TableCell className={COLUMN_CLASSES.actions}>
+                            <Input
+                              type="hidden"
+                              name={`type-${index}`}
+                              value={shift.type}
+                              readOnly
+                            />
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
                                 <Button variant="outline" size="icon">
@@ -506,12 +506,6 @@ export default function Page() {
 
                     return (
                       <TableRow key={index}>
-                        <Input
-                          type="hidden"
-                          name={`type-${index}`}
-                          value={shift.type}
-                          readOnly
-                        />
                         <TableCell className={COLUMN_CLASSES.num}>
                           {index + 1}
                         </TableCell>
@@ -556,6 +550,12 @@ export default function Page() {
                           />
                         </TableCell>
                         <TableCell className={COLUMN_CLASSES.actions}>
+                          <Input
+                            type="hidden"
+                            name={`type-${index}`}
+                            value={shift.type}
+                            readOnly
+                          />
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                               <Button variant="outline" size="icon">
