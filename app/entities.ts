@@ -73,12 +73,13 @@ export const validMediaTypes = [
 export type ValidMediaType = (typeof validMediaTypes)[number];
 
 export type UploadInput = {
-  name: string;
-  extra: string | null;
   contents: {
     data: string;
     mediaType: ValidMediaType;
   }[];
+  text: string | null;
+  name: string;
+  extra: string | null;
 };
 
 type AllDayShiftOutput = {

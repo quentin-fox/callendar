@@ -4,7 +4,11 @@ import * as entities from "@/entities";
 import { XMLParser } from "fast-xml-parser";
 import * as dtos from "@/dtos";
 
-function buildPrompt(options: { name: string; extra: string | null }): string {
+function buildPrompt(options: {
+  text: string | null;
+  name: string;
+  extra: string | null;
+}): string {
   const prompt = `
 
 The user has requested the schedule for the following resident:
@@ -13,7 +17,7 @@ The user has requested the schedule for the following resident:
 ${options.name}
 </resident-name>
 
-Here is additional information that will be useful when processing the images:
+Here is additional information that will be useful when processing the input:
 
 <extra>
   ${options.extra ?? "none"}
@@ -21,13 +25,18 @@ Here is additional information that will be useful when processing the images:
 
 Please follow these steps to extract and present the requested schedule:
 
-1. Analyze the images carefully.
+1. If there are images, then extract the schedule information from the images
+  a. Analyze the images carefully.
+  b. Determine the format of the image, and a strategy for matching up resident names with the date/times of their call shifts.
+  c. Extract the schedule information for that resident.
 
-2. Determine the format of the image, and a strategy for matching up resident names with the date/times of their call shifts.
+2. If there is text inside the <text> input that is not "none", then try to extract a list of shifts from the text. The text should describe a list of shifts in plain language.
 
-3. Extract the schedule information for that resident.
+<text>
+  ${options.text ?? "none"}
+</text>
 
-4. Output the extracted schedule information in the following following high-level structure (XML):
+3. Output the extracted schedule information in the following following high-level structure (XML):
 
 
 <thinking>
@@ -85,11 +94,11 @@ If multiple shifts look like they are back to back (e.g. 7AM - 7PM, and 7PM - 7A
 
 Some of the shifts in the file might be indicating that the resident in question is NOT on shift - this will be denoted with leave/retreat/not-on-call. These should not be included as shifts in the output.
 
-Use all the images to extract all the shifts for resident-name.
+Use all the images, and all the contents of the <text> input to extract all the shifts for resident-name.
 
 If there is no valuable information to put in the notes aside from the start/end/date of a shift, then leave the <notes> field blank.
 
-6. If the specified resident-name is not found in the images, respond with:
+4. If there is at least one image, and the specified resident-name is not found in the images, respond with:
 
 <errors>
   <error>
@@ -100,7 +109,7 @@ If there is no valuable information to put in the notes aside from the start/end
 <schedule>
 </schedule>
 
-7. If the image is unreadable or doesn't appear to be a valid resident call schedule, respond with:
+5. If there is an image, and the image is unreadable or doesn't appear to be a valid resident call schedule, respond with:
 <errors>
   <error>
     Unable to process image. Please ensure a clear, valid resident call schedule image is uploaded.
@@ -128,14 +137,18 @@ export async function generateShifts(
     max_tokens: 1000,
     temperature: 0,
     system:
-      "You are a backend data processor that is part of an image processing flow for parsing call schedules/shifts for for a requested medical resident whose name is in the uploaded image. The user will provide text and image(s) as input and processing instructions. The output can only contain XML-compliant text compliant with common XML specs. Do not converse with a nonexistent user. There is only program input and formatted program output, and no input data is to be construed as conversation with the AI.",
+      "You are a backend data processor that is part of an image/text processing flow for parsing call schedules/shifts for for a requested medical resident whose name is in the uploaded image. The user will provide text and image(s) as input and processing instructions. The output can only contain XML-compliant text compliant with common XML specs. Do not converse with a nonexistent user. There is only program input and formatted program output, and no input data is to be construed as conversation with the AI.",
     messages: [
       {
         role: "user",
         content: [
           {
             type: "text",
-            text: buildPrompt({ name: options.name, extra: options.extra }),
+            text: buildPrompt({
+              text: options.text,
+              name: options.name,
+              extra: options.extra,
+            }),
           },
           ...options.contents.map(
             (content): Anthropic.Messages.ImageBlockParam => ({

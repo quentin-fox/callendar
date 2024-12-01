@@ -39,6 +39,7 @@ import { DropzoneOptions } from "react-dropzone-esm";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Separator } from "@/components/ui/separator";
 
 export const handle = {
   breadcrumb: () => {
@@ -76,6 +77,9 @@ export const action = async ({ request, context }: ActionFunctionArgs) => {
     request,
     uploadHandler,
   );
+
+  const text = formData.get("text");
+  invariant(typeof text === "string" || text === null);
 
   const name = formData.get("name");
   invariant(typeof name === "string");
@@ -119,9 +123,10 @@ export const action = async ({ request, context }: ActionFunctionArgs) => {
   );
 
   const result = await services.uploads.process(generateShifts, {
+    contents,
+    text,
     name,
     extra,
-    contents,
   });
 
   if (isError(result)) {
@@ -195,54 +200,94 @@ export default function Page() {
       <Form
         method="POST"
         encType="multipart/form-data"
-        className="flex flex-col gap-4"
+        className="flex flex-col gap-8"
       >
-        <fieldset>
-          <FileUploader
-            value={uploads.map((u) => u.file)}
-            onValueChange={handleChangeFiles}
-            dropzoneOptions={dropZoneConfig}
-            className="gap-8"
-          >
-            <FileInput className="flex flex-col items-center justify-center rounded-xl border border-dashed border-muted px-8 py-12 hover:border-muted-foreground transition">
-              <p className="text-xl font-bold">Upload an Image</p>
-              <p className="text-sm text-muted-foreground">
-                Click anywhere to upload up to 4 images
-              </p>
-            </FileInput>
-            <FileUploaderContent className="flex flex-row flex-wrap justify-center gap-4">
-              {uploads.map((u) => (
-                <div className="group relative" key={u.url}>
-                  <img
-                    key={u.url}
-                    className="size-36 rounded-xl object-cover border border-muted"
-                    alt="schedule screenshot"
-                    src={u.url}
-                  />
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <Button
-                      variant="outline"
-                      onClick={() => handleRemoveUpload(u.url)}
-                      size="icon"
-                    >
-                      <TrashIcon />
-                    </Button>
+        <div className="flex flex-col gap-4">
+          <fieldset>
+            <FileUploader
+              value={uploads.map((u) => u.file)}
+              onValueChange={handleChangeFiles}
+              dropzoneOptions={dropZoneConfig}
+              className="gap-8"
+            >
+              <FileInput className="flex flex-col items-center justify-center rounded-xl border border-dashed border-muted px-8 py-12 hover:border-muted-foreground transition">
+                <p className="text-xl font-bold">Upload an Image</p>
+                <p className="text-sm text-muted-foreground">
+                  Click anywhere to upload up to 4 images
+                </p>
+              </FileInput>
+              <FileUploaderContent className="flex flex-row flex-wrap justify-center gap-4">
+                {uploads.map((u) => (
+                  <div className="group relative" key={u.url}>
+                    <img
+                      key={u.url}
+                      className="size-36 rounded-xl object-cover border border-muted"
+                      alt="schedule screenshot"
+                      src={u.url}
+                    />
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <Button
+                        variant="outline"
+                        onClick={() => handleRemoveUpload(u.url)}
+                        size="icon"
+                      >
+                        <TrashIcon />
+                      </Button>
+                    </div>
                   </div>
-                </div>
-              ))}
-            </FileUploaderContent>
-          </FileUploader>
-        </fieldset>
+                ))}
+              </FileUploaderContent>
+            </FileUploader>
+          </fieldset>
 
-        <fieldset>
-          <Label htmlFor="name">Resident Name</Label>
-          <Input id="name" type="text" required name="name" />
-        </fieldset>
+          <div className="flex flex-row gap-4 items-center">
+            <Separator className="flex-1" orientation="horizontal" />
+            <span className="text-xs text-border">AND / OR</span>
+            <Separator className="flex-1" orientation="horizontal" />
+          </div>
 
-        <fieldset>
-          <Label htmlFor="extra">Other Information</Label>
-          <Textarea id="extra" name="extra" />
-        </fieldset>
+          <fieldset className="flex flex-col gap-2">
+            <div>
+              <Label htmlFor="text">Shifts</Label>
+              <Textarea
+                id="text"
+                name="text"
+                placeholder={
+                  "One all-day shift on October 24th, another on October 28th, and then a 6 hour shift on October 30th starting at noon."
+                }
+              />
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Enter the shifts that you want to upload as text, using plain
+              language. Hint: you can use your device&apos;s built-in dictation
+              to read out your schedule, and Callendar will parse it out into
+              the correct list of shifts!
+            </p>
+          </fieldset>
+        </div>
+
+        <div className="flex flex-col gap-4">
+          <fieldset className="flex flex-col gap-2">
+            <div>
+              <Label htmlFor="name">Resident Name</Label>
+              <Input id="name" type="text" required name="name" />
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Enter the name of the resident as it appears on the schedule.
+            </p>
+          </fieldset>
+
+          <fieldset className="flex flex-col gap-2">
+            <div>
+              <Label htmlFor="extra">Other Information</Label>
+              <Textarea id="extra" name="extra" />
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Provide any additional information required to generate the
+              shifts, e.g. the year, the format of the upload, etc.
+            </p>
+          </fieldset>
+        </div>
 
         <Button type="submit" disabled={navigation.state !== "idle"}>
           {navigation.state === "idle" ? "Upload" : "Uploading..."}
