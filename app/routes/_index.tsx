@@ -80,7 +80,7 @@ export default function Page() {
   const actionData = useActionData<typeof action>();
 
   return (
-    <div className="flex flex-col h-screen w-screen items-center flex-start pt-40 gap-2">
+    <div className="flex flex-col h-screen w-screen items-center justify-start pt-40 gap-2">
       <Card className="w-full max-w-sm">
         <Form method="POST">
           <CardHeader>
