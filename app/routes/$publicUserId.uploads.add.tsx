@@ -67,7 +67,7 @@ export const loader = async ({ context, params }: LoaderFunctionArgs) => {
   return { locations };
 };
 
-export const action = async ({ request }: ActionFunctionArgs) => {
+export const action = async ({ request, context }: ActionFunctionArgs) => {
   const uploadHandler = unstable_createMemoryUploadHandler({
     maxPartSize: 5_000_000,
   });
@@ -111,7 +111,12 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       }),
     );
 
-  const generateShifts = adapters.mock.generateShifts;
+  const { ANTHROPIC_API_KEY } = context.cloudflare.env;
+
+  const generateShifts = adapters.anthropic.generateShifts.bind(
+    null,
+    ANTHROPIC_API_KEY,
+  );
 
   const result = await services.uploads.process(generateShifts, {
     name,

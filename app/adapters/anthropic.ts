@@ -1,6 +1,8 @@
 import Anthropic from "@anthropic-ai/sdk";
 
 import * as entities from "@/entities";
+import { XMLParser } from "fast-xml-parser";
+import * as dtos from "@/dtos";
 
 function buildPrompt(options: { name: string; extra: string | null }): string {
   const prompt = `
@@ -150,10 +152,62 @@ export async function generateShifts(
     ],
   });
 
-  const texts = msg.content.flatMap((content) =>
-    content.type === "text" ? content.text : [],
-  );
+  const text = msg.content.find((content) => content.type === "text");
 
-  // TODO xml parsing... how do we best validate it?
-  return { shifts: [], errors: texts };
+  if (!text) {
+    return { shifts: [], errors: ["Could not generate shifts. Oops."] };
+  }
+
+  const parser = new XMLParser({
+    // so that if there is a single error, or a single shift
+    // it's still always parsed as an array
+    isArray: (_, jpath) => ["errors.error", "schedule.shift"].includes(jpath),
+  });
+
+  let parsedData: unknown;
+
+  try {
+    parsedData = parser.parse(text.text);
+  } catch (error) {
+    return { shifts: [], errors: ["Failed to parse XML response."] };
+  }
+
+  if (typeof parsedData !== "object" || parsedData === null) {
+    return { shifts: [], errors: ["Failed to parse XML response."] };
+  }
+
+  const errors: string[] = [];
+
+  if (
+    "errors" in parsedData &&
+    typeof parsedData.errors === "object" &&
+    parsedData.errors !== null &&
+    "error" in parsedData.errors
+  ) {
+    if (Array.isArray(parsedData.errors.error)) {
+      parsedData.errors.error.forEach((error: unknown) => {
+        if (typeof error === "string") {
+          errors.push(error);
+        }
+      });
+    }
+  }
+
+  // Extract shifts
+  const shifts: dtos.TimedShiftOutput[] = [];
+
+  if (
+    "schedule" in parsedData &&
+    typeof parsedData.schedule === "object" &&
+    parsedData.schedule !== null &&
+    "shift" in parsedData.schedule
+  ) {
+    if (Array.isArray(parsedData.schedule.shift)) {
+      parsedData.schedule.shift.forEach((shift) => {
+        shifts.push(shift);
+      });
+    }
+  }
+
+  return { shifts, errors };
 }
