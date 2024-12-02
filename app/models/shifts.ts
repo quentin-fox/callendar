@@ -324,11 +324,11 @@ export async function remove(
 ): Promise<void> {
   const query = `
 UPDATE shifts
-SET removed_at = $2
-WHERE id = $1;
+SET removed_at = ?
+WHERE id = ?;
 `;
 
-  const parameters = [options.shiftId, options.removedAt];
+  const parameters = [options.removedAt, options.shiftId];
 
   await db
     .prepare(query)
@@ -342,11 +342,11 @@ export async function removeBySchedule(
 ): Promise<void> {
   const query = `
 UPDATE shifts
-SET removed_at = $2
-WHERE removed_at IS NULL AND schedule_id = $1;
+SET removed_at = ?
+WHERE removed_at IS NULL AND schedule_id = ?;
 `;
 
-  const parameters = [options.scheduleId, options.removedAt];
+  const parameters = [options.removedAt, options.scheduleId];
 
   await db
     .prepare(query)
