@@ -217,7 +217,8 @@ FROM
   schedules
 WHERE
   schedules.removed_at IS NULL AND
-  schedules.user_id = ?;
+  schedules.user_id = ?
+ORDER BY first_shift_start DESC NULLS LAST, id DESC;
 `;
 
   const parameters = [options.userId];

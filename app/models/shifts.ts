@@ -270,7 +270,8 @@ FROM
   shifts
 WHERE
   removed_at IS NULL
-  AND schedule_id = ?;
+  AND schedule_id = ?
+ORDER BY start DESC, id desc;
 `;
 
   const parameters = [options.scheduleId];
@@ -306,7 +307,7 @@ FROM
 WHERE
   shifts.removed_at IS NULL
   AND shifts.user_id = ?
-ORDER BY shifts.start ASC, shifts.id ASC;
+ORDER BY start DESC, id DESC;
 `;
 
   const parameters = [options.userId];
