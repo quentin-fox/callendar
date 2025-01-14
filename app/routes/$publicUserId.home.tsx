@@ -80,9 +80,9 @@ export const loader = async ({
     return start > now ? prev + 1 : prev;
   }, 0);
 
-  // this works because shifts is in ascending order
-  // so the first shift whose start is greater than now is the next shift
-  const nextShift = shiftsResult.find((shift) => {
+  // shifts is in descending order, so we need to reverse it first so that it's ascending
+  // once ascending, the first shift whose start is greater than now is the next shift
+  const nextShift = [...shiftsResult].reverse().find((shift) => {
     const start = new Date(shift.start);
 
     return start > now;
