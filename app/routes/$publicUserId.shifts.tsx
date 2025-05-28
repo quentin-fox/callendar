@@ -264,8 +264,8 @@ export default function Page() {
         {shifts.length === 0 && (
           <TableEmptyCard.Spacing>
             <TableEmptyCard
-              title="No Locations"
-              description="Add a location to associate a schedule and/or shift with a hospital, clinic, etc."
+              title="No Shifts"
+              description="Add a shift to indicate when you'll be working."
             >
               <Link to="add">
                 <Button type="button" variant={"default"}>
