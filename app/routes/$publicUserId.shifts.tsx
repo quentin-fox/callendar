@@ -269,7 +269,7 @@ export default function Page() {
             >
               <Link to="add">
                 <Button type="button" variant={"default"}>
-                  Add a Location
+                  Add a Shift
                 </Button>
               </Link>
             </TableEmptyCard>
