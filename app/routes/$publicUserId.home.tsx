@@ -140,9 +140,11 @@ export const loader = async ({
     };
   });
 
+  const thisMonth = byMonth[5].claimed + byMonth[5].unclaimed;
+
   const stats = {
     upcoming,
-    thisMonth: Math.floor(shiftsResult.length / 2),
+    thisMonth,
     allTime: shiftsResult.length,
     nextShiftStart: nextShift?.start ?? null,
     byMonth,
